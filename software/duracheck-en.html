@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DURACHEK — Concrete Durability Evaluation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F3EE; --panel:#FFFFFF; --panel2:#FDFCFA; --ink:#211E19; --muted:#6E695E;
+  --line:#DFDAD0; --line-soft:#EAE6DD; --ax:#C7C1B2;
+  --acc:#C13A17; --acc-dk:#A32F12;
+  --pass:#2E7A50; --fail:#B3362D; --warn:#9A6A10;
+  --dk:#262219; --dk-line:#3B362A; --dk-mut:#A6A091;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'Space Grotesk',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{font-size:15px}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--acc);color:#fff}
+.wrap{max-width:1280px;margin:0 auto;padding:0 26px}
+
+/* ---------- masthead ---------- */
+.masthead{background:var(--dk);border-bottom:3px solid var(--acc);position:relative}
+.masthead::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.06;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
+.mast-in{display:flex;justify-content:space-between;align-items:center;gap:26px;padding:24px 0;flex-wrap:wrap}
+.brand{display:flex;gap:14px;align-items:center}
+.mark{width:14px;height:14px;background:var(--acc);flex:none;box-shadow:16px 0 0 -3px var(--acc)}
+.wordmark{font:700 23px/1 var(--sans);letter-spacing:.17em;color:#F5F3EE}
+.tagline{font:500 10px var(--mono);letter-spacing:.16em;color:#98917F;margin-top:6px}
+.docmeta{display:grid;gap:4px 0}
+.docmeta div{display:flex;gap:10px;font:500 10px var(--mono);letter-spacing:.06em}
+.docmeta span{color:#7E7767;width:62px}
+.docmeta b{color:#EDEBE5;font-weight:500}
+.strip{background:#EFEBE3;border-bottom:1px solid var(--line)}
+.strip-in{display:flex;flex-wrap:wrap;gap:8px 24px;padding:9px 0}
+.strip-in span{font:500 9.5px var(--mono);letter-spacing:.12em;color:#8A8478}
+.strip-in span:not(:first-child)::before{content:'/';color:var(--acc);margin-right:24px;font-weight:600}
+
+/* ---------- grid ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:24px;align-items:start;padding-top:26px}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:2px;margin-bottom:22px;
+ animation:up .5s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d,0s)}
+.sec.flash{outline:2px solid var(--acc);outline-offset:-2px}
+.sec-h{display:flex;gap:14px;align-items:baseline;padding:16px 20px 13px;border-bottom:1px solid var(--line-soft)}
+.sec-h .n{font:600 12px var(--mono);color:var(--acc);letter-spacing:.08em}
+.sec-h h2{font:600 17px/1.1 var(--sans);letter-spacing:-.01em}
+.sec-h p{font:400 12.5px var(--sans);color:var(--muted);margin-top:3px}
+.sectag{margin-left:auto;font:600 9.5px var(--mono);letter-spacing:.14em;color:#8A8478;
+ border:1px solid var(--line);padding:4px 9px;border-radius:2px;white-space:nowrap}
+.sectag.gov{color:var(--acc);border-color:var(--acc)}
+.sec-b{padding:18px 20px}
+
+/* fields */
+.frow{display:grid;gap:14px;margin-bottom:16px}
+.frow.two{grid-template-columns:1fr 1fr}
+.frow.four{grid-template-columns:repeat(4,1fr)}
+.fld label,.ctl-h label{display:block;font:500 12px var(--sans);color:#57534A;margin-bottom:6px;letter-spacing:.02em}
+.fld label em,.ctl-h label em{font:400 10px var(--mono);font-style:normal;color:#8A8478;margin-left:4px}
+input[type=text],input[type=number],select{width:100%;border:1px solid var(--line);background:var(--panel2);
+ border-radius:2px;padding:9px 11px;color:var(--ink);font:500 13.5px var(--sans);transition:border-color .15s}
+input[type=number]{font-family:var(--mono);font-size:13px}
+select{appearance:none;-webkit-appearance:none;padding-right:30px;cursor:pointer;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236E695E' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:right 11px center;background-size:10px}
+input:focus,select:focus{outline:none;border-color:var(--ink)}
+.fnote{font:400 10.5px var(--mono);letter-spacing:.03em;color:#8A8478;margin-top:8px;line-height:1.6}
+
+/* chips */
+.chipzone{border-top:1px dashed var(--line);padding-top:14px;margin-bottom:16px}
+.chiprow{display:flex;align-items:center;gap:14px;padding:4px 0}
+.crlab{flex:none;width:212px;font:500 10px var(--mono);letter-spacing:.08em;color:#8A8478;line-height:1.5}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 11.5px var(--mono);letter-spacing:.06em;padding:7px 11px;border:1px solid #C9C3B6;
+ background:var(--panel2);color:var(--ink);cursor:pointer;border-radius:2px;transition:all .15s}
+.chip:hover:not(.on){border-color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#F5F3EE}
+
+/* governing spec box */
+.specbox{margin-top:14px;background:#F3F0E9;border:1px solid var(--line-soft);border-left:3px solid var(--ink);padding:12px 15px}
+@keyframes pulse{0%{background:#F0E4D4}100%{background:#F3F0E9}}
+.specbox.pulse{animation:pulse .6s ease}
+.specbox-t{font:600 9.5px var(--mono);letter-spacing:.18em;color:#8A8478;margin-bottom:9px}
+.specrows{display:grid;grid-template-columns:1fr 1fr;gap:5px 20px}
+.specrows>div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.specrows span{font:400 10px var(--mono);color:#8A8478;letter-spacing:.04em}
+.specrows b{font:600 12px var(--mono);color:var(--ink)}
+.specbox-f{font:400 9px var(--mono);color:#9A948A;letter-spacing:.05em;margin-top:9px}
+
+/* sliders */
+.ctl{margin-bottom:18px;transition:opacity .25s}
+.ctl.dim{opacity:.45}
+.ctl-h{display:flex;justify-content:space-between;align-items:baseline}
+.ctl-h .val{font:600 13.5px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.rtag{font:600 8.5px var(--mono);letter-spacing:.08em;border:1px solid #C9C3B6;color:#8A8478;
+ padding:2px 5px;border-radius:2px;margin-left:8px;vertical-align:1px}
+.rtag.on{color:var(--acc);border-color:var(--acc)}
+.slider{position:relative;height:30px}
+.rail{position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;background:var(--line)}
+.zone{position:absolute;top:50%;height:9px;margin-top:-4.5px;background:rgba(46,122,80,.13);display:none}
+.fill{position:absolute;left:0;top:50%;height:3px;margin-top:-1.5px;background:var(--ink);width:0;transition:width .08s linear}
+.tick{position:absolute;top:6px;bottom:6px;width:2px;background:#8F897B;display:none}
+.tick span{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font:600 9px var(--mono);
+ color:#6E695E;background:var(--panel);padding:0 3px;white-space:nowrap}
+.hint{font:500 9.5px var(--mono);letter-spacing:.07em;color:#8A8478;margin-top:4px}
+.hint.viol{color:var(--fail);font-weight:600}
+.ctl.viol .fill{background:var(--fail)}
+.ctl.viol .val{color:var(--fail)}
+input[type=range]{position:absolute;inset:0;width:100%;height:30px;appearance:none;-webkit-appearance:none;background:transparent;margin:0;cursor:ew-resize}
+input[type=range]::-webkit-slider-runnable-track{height:30px;background:transparent}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:7.5px;
+ background:#fff;border:2px solid var(--ink);border-radius:2px;cursor:ew-resize}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--acc);outline-offset:2px}
+input[type=range]::-moz-range-track{height:30px;background:transparent}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;background:#fff;border:2px solid var(--ink);border-radius:2px;cursor:ew-resize}
+.ctl.viol input[type=range]::-webkit-slider-thumb{border-color:var(--fail);background:#F7ECEA}
+.ctl.viol input[type=range]::-moz-range-thumb{border-color:var(--fail);background:#F7ECEA}
+.modelnote{font:400 11.5px/1.65 var(--sans);color:var(--muted);border-top:1px solid var(--line-soft);padding-top:12px}
+
+/* ---------- panel ---------- */
+.colpanel{align-self:start;animation:up .5s .1s cubic-bezier(.2,.7,.3,1) both}
+.panel{position:sticky;top:16px;background:var(--dk);color:#EDEBE5;border-radius:3px;padding:17px 16px 16px}
+.p-title{font:600 10px var(--mono);letter-spacing:.24em;color:#E06A3C}
+.pbox{margin-top:15px}
+.pbox-t{font:600 9px var(--mono);letter-spacing:.2em;color:#98917F;border-bottom:1px solid var(--dk-line);padding-bottom:6px;margin-bottom:8px}
+.srow{display:flex;justify-content:space-between;gap:10px;padding:3px 0;align-items:baseline}
+.srow span{font:400 11px var(--mono);color:var(--dk-mut)}
+.srow b{font:600 11.5px var(--mono);color:#F0EEE8}
+/* DPI */
+.dpi-main{display:flex;align-items:baseline;gap:12px}
+.dpi-n{font:600 38px/1 var(--mono);color:#F0EEE8}
+.dpi-g{font:700 20px/1 var(--mono);border:2px solid currentColor;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:2px}
+.bar{margin-top:12px}
+.ruler{height:5px;background:repeating-linear-gradient(90deg,#4A4436 0,#4A4436 1px,transparent 1px,transparent 10%);margin-bottom:3px}
+.track{height:8px;background:#38332A;position:relative}
+.fillbar{position:absolute;left:0;top:0;bottom:0;width:0;transition:width .3s ease}
+.dpi.gA .dpi-n,.dpi.gA .dpi-g{color:#7FC79C}.dpi.gA .fillbar{background:#7FC79C}
+.dpi.gB .dpi-n,.dpi.gB .dpi-g{color:#B9C97E}.dpi.gB .fillbar{background:#B9C97E}
+.dpi.gC .dpi-n,.dpi.gC .dpi-g{color:#D9A94F}.dpi.gC .fillbar{background:#D9A94F}
+.dpi.gD .dpi-n,.dpi.gD .dpi-g{color:#C97B4A}.dpi.gD .fillbar{background:#C97B4A}
+.dpi.gF .dpi-n,.dpi.gF .dpi-g{color:#E58879}.dpi.gF .fillbar{background:#E58879}
+/* checks */
+.ck{display:grid;grid-template-columns:16px 1fr auto;gap:9px;align-items:center;padding:5.5px 2px;
+ border-bottom:1px solid #2E2A21;cursor:pointer}
+.ck:hover{background:#2E2A21}
+.ck-ic svg{width:13px;height:13px;display:block}
+.ck-ic.pass{color:#7FC79C}.ck-ic.warn{color:#D9A94F}.ck-ic.fail{color:#E58879}.ck-ic.na{color:#7A7466}
+.ck-nm{font:400 11.5px var(--sans);color:#DCD7CB}
+.ck-vl{font:400 10px var(--mono);color:#A6A091;text-align:right}
+.ck-vl em{font-style:normal;color:#7A7466}
+/* buttons */
+button{font-family:var(--mono)}
+.run{position:relative;margin-top:17px;width:100%;padding:14px;background:var(--acc);color:#fff;border:none;
+ cursor:pointer;font:600 12px var(--mono);letter-spacing:.2em;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s,transform .05s}
+.run svg{width:15px;height:15px}
+.run:hover{background:var(--acc-dk)}
+.run:active{transform:translateY(1px)}
+.run .dot{position:absolute;right:9px;top:9px;width:7px;height:7px;border-radius:50%;background:#FFD3C2}
+.printb{margin-top:9px;width:100%;padding:11px;background:transparent;border:1px solid #4A4436;color:#C9C3B6;
+ cursor:pointer;font:500 10.5px var(--mono);letter-spacing:.18em;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .15s}
+.printb svg{width:13px;height:13px}
+.printb:not(:disabled):hover{border-color:#A6A091;color:#F0EEE8}
+.printb:disabled{opacity:.35;cursor:default}
+.p-foot{font:400 9px var(--mono);letter-spacing:.08em;color:#7A7466;margin-top:13px;text-align:center}
+
+/* ---------- results ---------- */
+.results{margin-top:8px;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--ink);
+ border-radius:2px;animation:up .55s cubic-bezier(.2,.7,.3,1) both}
+.res-h{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:20px 22px 16px;border-bottom:1px solid var(--line-soft)}
+.res-meta{display:flex;gap:14px;align-items:baseline}
+.res-meta .n{font:600 12px var(--mono);color:var(--acc)}
+.res-meta h2{font:600 20px/1.1 var(--sans)}
+.res-meta p{font:500 11px var(--mono);letter-spacing:.05em;color:var(--muted);margin-top:6px}
+.stamp{transform:rotate(-5deg);mix-blend-mode:multiply;animation:stampIn .5s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes stampIn{0%{opacity:0;transform:rotate(-5deg) scale(2)}60%{opacity:1;transform:rotate(-4deg) scale(.94)}100%{transform:rotate(-5deg) scale(1)}}
+.stamp-b{border:3px solid currentColor;padding:12px 22px 11px;text-align:center;position:relative;max-width:230px}
+.stamp-b::after{content:'';position:absolute;inset:3px;border:1px solid currentColor}
+.stamp.pass{color:var(--pass)}.stamp.warn{color:var(--warn)}.stamp.fail{color:var(--fail)}.stamp.na{color:#6E695E}
+.stamp .sg{display:block;font:700 54px/1 var(--sans);letter-spacing:-.02em}
+.stamp .sv{display:block;font:700 10.5px var(--mono);letter-spacing:.2em;margin-top:7px;line-height:1.5}
+.stamp .sd{display:block;font:500 9px var(--mono);letter-spacing:.1em;margin-top:5px;opacity:.75}
+.verdict{padding:15px 22px;font:400 14px/1.6 var(--sans);border-bottom:1px solid var(--line-soft);color:#4A463D}
+.v-pass b{color:var(--pass)}.v-warn b{color:var(--warn)}.v-fail b{color:var(--fail)}.v-na b{color:var(--muted)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:20px 22px;border-bottom:1px solid var(--line-soft)}
+.fig{border:1px solid var(--line-soft);background:var(--panel2);break-inside:avoid}
+.fig figcaption{font:600 9.5px var(--mono);letter-spacing:.14em;color:#57534A;padding:9px 12px;border-bottom:1px solid var(--line-soft)}
+.fig figcaption span{color:var(--acc);margin-right:8px}
+.fig canvas{display:block;width:100%;height:270px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:9px 12px 4px;border-top:1px solid var(--line-soft)}
+.legend .li{font:500 9.5px var(--mono);letter-spacing:.06em;color:#6E695E}
+.legend i{display:inline-block;width:15px;height:3px;vertical-align:2px;margin-right:6px}
+.legend i.d{height:0;border-top:2px dashed;background:none!important}
+.cap{padding:4px 12px 10px;font:400 9.5px var(--mono);letter-spacing:.05em;color:#8A8478}
+.blk{padding:20px 22px;border-bottom:1px solid var(--line-soft)}
+.blk:last-child{border-bottom:none}
+.blk h3{font:600 10.5px var(--mono);letter-spacing:.22em;color:#57534A;margin-bottom:13px}
+table.slt{width:100%;border-collapse:collapse}
+table.slt th{font:600 9.5px var(--mono);letter-spacing:.1em;color:#8A8478;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+table.slt td{font:500 12px var(--mono);padding:8px 10px;border-bottom:1px solid var(--line-soft)}
+table.slt tr.gov td{background:#F3F0E9;font-weight:600}
+table.slt tr.gov td:first-child{border-left:3px solid var(--acc)}
+.ok{color:var(--pass)}.short{color:var(--fail)}
+.r{display:flex;gap:13px;padding:11px 13px;border:1px solid var(--line-soft);border-left:3px solid #B9B3A6;background:var(--panel2);margin-bottom:8px;break-inside:avoid}
+.r.fail{border-left-color:var(--fail)}.r.warn{border-left-color:var(--warn)}
+.r .ric{flex:none;width:16px;height:16px;margin-top:1px}
+.r.fail .ric{color:var(--fail)}.r.warn .ric{color:var(--warn)}.r .ric{color:#8A8478}
+.r .ric svg{width:16px;height:16px;display:block}
+.r h4{font:600 12px var(--sans);letter-spacing:.05em}
+.r p{font:400 12.5px/1.55 var(--sans);color:var(--muted);margin-top:3px}
+.record{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line-soft)}
+.record>div{background:var(--panel2);padding:8px 11px}
+.record span{display:block;font:400 8.5px var(--mono);letter-spacing:.12em;color:#8A8478;margin-bottom:3px}
+.record b{font:500 11.5px var(--mono);color:var(--ink)}
+
+/* footer */
+.foot{margin-top:34px;border-top:2px solid var(--ink);padding:24px 0 38px}
+.foot-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.foot h4{font:600 10px var(--mono);letter-spacing:.2em;margin-bottom:10px}
+.foot ul{list-style:none}
+.foot li{font:400 11.5px/1.65 var(--sans);color:var(--muted);padding-left:14px;position:relative;margin-bottom:3px}
+.foot li::before{content:'—';position:absolute;left:0;color:var(--acc)}
+.disc{margin-top:20px;border-top:1px solid var(--line);padding-top:13px;font:400 10.5px var(--mono);letter-spacing:.03em;color:#8A8478;line-height:1.7}
+
+@media(max-width:1040px){.grid{grid-template-columns:1fr}.panel{position:static}}
+@media(max-width:860px){.charts{grid-template-columns:1fr}.frow.two{grid-template-columns:1fr 1fr}.record{grid-template-columns:1fr 1fr}
+ .crlab{width:100%}.chiprow{flex-direction:column;align-items:flex-start;gap:7px}.docmeta{display:none}}
+@media(max-width:620px){.res-h{flex-direction:column;gap:14px}.frow.four{grid-template-columns:1fr 1fr}.foot-grid{grid-template-columns:1fr}}
+@media print{
+ @page{size:A4;margin:14mm}
+ body{background:#fff}
+ .strip,.inputs,.colpanel{display:none}
+ .wrap{max-width:none;padding:0}
+ .grid{padding-top:0}
+ .results{border:none;animation:none}
+ .charts,.blk,.res-h{break-inside:avoid}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap mast-in">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <div class="wordmark">DURACHEK</div>
+        <div class="tagline">CONCRETE DURABILITY EVALUATION WORKSHEET</div>
+      </div>
+    </div>
+    <div class="docmeta">
+      <div><span>DOC REF</span><b>CD-2025-041</b></div>
+      <div><span>BASIS</span><b>EN 206 · EN 1992-1-1 · fib BULL. 34</b></div>
+      <div><span>REV</span><b>C — INTERACTIVE</b></div>
+    </div>
+  </div>
+</header>
+<div class="strip"><div class="wrap strip-in">
+  <span>EXPOSURE CLASSES — EN 206 TAB. 1</span>
+  <span>MINIMUM COVER — EC2 §4.4 (S4 · Δc_dev 10 mm)</span>
+  <span>CHLORIDE INGRESS — FICK II · AGED DIFFUSIVITY</span>
+  <span>CARBONATION — x = K·√t</span>
+</div></div>
+
+<main class="wrap">
+<div class="grid">
+  <div class="inputs">
+
+    <!-- 01 -->
+    <section class="sec" id="sec01" style="--d:.02s">
+      <header class="sec-h">
+        <span class="n">01</span>
+        <div><h2>Project &amp; Environment</h2><p>Service conditions and exposure classification</p></div>
+        <span class="sectag gov" id="tagEnv">—</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow">
+          <div class="fld"><label>Structure / element</label>
+            <input type="text" id="inName" placeholder="e.g. Coastal pump station — retaining walls"></div>
+        </div>
+        <div class="frow two">
+          <div class="fld"><label>Project reference</label><input type="text" id="inRef" placeholder="PRJ-2025-…"></div>
+          <div class="fld"><label>Assessed by</label><input type="text" id="inBy" placeholder="Name / initials"></div>
+        </div>
+        <div class="frow two">
+          <div class="fld"><label>Design service life <em>yr</em></label><input type="number" id="inLife" value="50" min="10" max="150" step="1"></div>
+          <div class="fld"><label>Service environment (preset)</label><select id="inPreset"></select></div>
+        </div>
+        <div class="chipzone" id="chipRows"></div>
+        <div class="specbox" id="specBox">
+          <div class="specbox-t">GOVERNING REQUIREMENTS — SELECTED CLASSES</div>
+          <div class="specrows" id="specRows"></div>
+          <div class="specbox-f">BASIS: EN 206 TAB. E.1N · EC2 TAB. 4.4N (STRUCTURAL CLASS S4, Δc_dev = 10 mm)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="sec" id="sec02" style="--d:.07s">
+      <header class="sec-h">
+        <span class="n">02</span>
+        <div><h2>Concrete Composition</h2><p>Constituent materials and mix proportions</p></div>
+        <span class="sectag">MIX</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow two">
+          <div class="fld"><label>Cement / binder type</label><select id="inCement"></select></div>
+          <div class="fld"><label>Strength class</label><select id="inStr"></select></div>
+        </div>
+        <div class="fnote" id="cemNote" style="margin-top:-8px;margin-bottom:14px"></div>
+        <div class="ctl" id="rowWc">
+          <div class="ctl-h"><label for="inWc">Water/cement ratio <em>w/c</em></label><output class="val" id="outWc" for="inWc">0.50</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneWc"></div><div class="fill" id="fillWc"></div>
+            <div class="tick" id="tickWc"><span id="tickLblWc"></span></div>
+            <input type="range" id="inWc" min="0.30" max="0.75" step="0.01" value="0.50">
+          </div>
+          <div class="hint" id="hintWc"></div>
+        </div>
+        <div class="ctl" id="rowBinder" style="margin-bottom:4px">
+          <div class="ctl-h"><label for="inBinder">Binder content <em>kg/m³</em></label><output class="val" id="outBinder" for="inBinder">310</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneBinder"></div><div class="fill" id="fillBinder"></div>
+            <div class="tick" id="tickBinder"><span id="tickLblBinder"></span></div>
+            <input type="range" id="inBinder" min="240" max="460" step="5" value="310">
+          </div>
+          <div class="hint" id="hintBinder"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="sec" id="sec03" style="--d:.12s">
+      <header class="sec-h">
+        <span class="n">03</span>
+        <div><h2>Cover &amp; Reinforcement</h2><p>Nominal protection of embedded steel</p></div>
+        <span class="sectag">COVER</span>
+      </header>
+      <div class="sec-b">
+        <div class="ctl" id="rowCover" style="margin-bottom:4px">
+          <div class="ctl-h"><label for="inCover">Nominal cover <em>c_nom · mm</em></label><output class="val" id="outCover" for="inCover">45</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneCover"></div><div class="fill" id="fillCover"></div>
+            <div class="tick" id="tickCover"><span id="tickLblCover"></span></div>
+            <input type="range" id="inCover" min="10" max="70" step="1" value="45">
+          </div>
+          <div class="hint" id="hintCover"></div>
+          <div class="fnote">c_nom = c_min,dur + Δc_dev · Δc_dev = 10 mm assumed (EC2 §4.4.1.3, execution class 2)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="sec" id="sec04" style="--d:.17s">
+      <header class="sec-h">
+        <span class="n">04</span>
+        <div><h2>Transport Properties</h2><p>Performance-based indicators (trial-mix / testing)</p></div>
+        <span class="sectag" id="tag04">PERFORMANCE</span>
+      </header>
+      <div class="sec-b">
+        <div class="ctl" id="rowDrcm">
+          <div class="ctl-h"><label for="inDrcm">Chloride diffusivity D_RCM <em>×10⁻¹² m²/s · NT Build 492</em><span class="rtag" id="tagDrcm"></span></label><output class="val" id="outDrcm" for="inDrcm">10.0</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneDrcm"></div><div class="fill" id="fillDrcm"></div>
+            <div class="tick" id="tickDrcm"><span id="tickLblDrcm"></span></div>
+            <input type="range" id="inDrcm" min="1" max="30" step="0.5" value="10">
+          </div>
+          <div class="hint" id="hintDrcm"></div>
+        </div>
+        <div class="ctl" id="rowK">
+          <div class="ctl-h"><label for="inK">Carbonation coefficient K <em>mm/√yr</em><span class="rtag" id="tagK"></span></label><output class="val" id="outK" for="inK">3.8</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneK"></div><div class="fill" id="fillK"></div>
+            <div class="tick" id="tickK"><span id="tickLblK"></span></div>
+            <input type="range" id="inK" min="0.5" max="12" step="0.1" value="3.8">
+          </div>
+          <div class="hint" id="hintK"></div>
+        </div>
+        <div class="ctl" id="rowAir">
+          <div class="ctl-h"><label for="inAir">Total air content <em>%</em><span class="rtag" id="tagAir"></span></label><output class="val" id="outAir" for="inAir">1.5</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneAir"></div><div class="fill" id="fillAir"></div>
+            <div class="tick" id="tickAir"><span id="tickLblAir"></span></div>
+            <input type="range" id="inAir" min="0" max="8" step="0.1" value="1.5">
+          </div>
+          <div class="hint" id="hintAir"></div>
+        </div>
+        <div class="ctl" id="rowSpacing" style="margin-bottom:4px">
+          <div class="ctl-h"><label for="inSpacing">Air-void spacing factor <em>μm · ASTM C457</em><span class="rtag" id="tagSpacing"></span></label><output class="val" id="outSpacing" for="inSpacing">310</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneSpacing"></div><div class="fill" id="fillSpacing"></div>
+            <div class="tick" id="tickSpacing"><span id="tickLblSpacing"></span></div>
+            <input type="range" id="inSpacing" min="50" max="600" step="5" value="310">
+          </div>
+          <div class="hint" id="hintSpacing"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="sec" id="sec05" style="--d:.22s">
+      <header class="sec-h">
+        <span class="n">05</span>
+        <div><h2>Chemical Environment &amp; Aggregates</h2><p>Sulfate attack and alkali–silika screening</p></div>
+        <span class="sectag">CHEM / ASR</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow two" style="margin-bottom:0">
+          <div class="fld"><label>SO₄²⁻ — groundwater <em>mg/l</em></label><input type="number" id="inSo4w" value="120" min="0" step="10"></div>
+          <div class="fld"><label>SO₄²⁻ — soil <em>mg/kg</em></label><input type="number" id="inSo4s" value="0" min="0" step="50"></div>
+        </div>
+        <div class="fnote" id="chemNote"></div>
+        <div class="frow" style="margin-top:14px">
+          <div class="fld"><label>Aggregate alkali–silica reactivity</label><select id="inReactivity"></select></div>
+        </div>
+        <div class="frow two">
+          <div class="fld"><label>Cement alkali content <em>% Na₂Oeq</em></label><input type="number" id="inAlkali" value="0.75" min="0.3" max="1.2" step="0.05"></div>
+          <div class="fld"><label>ASR mitigation</label><select id="inMit"></select></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="sec" id="sec06" style="--d:.27s">
+      <header class="sec-h">
+        <span class="n">06</span>
+        <div><h2>Service-Life Model</h2><p>Parameters for initiation-limited prediction</p></div>
+        <span class="sectag">SLD</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow four" style="margin-bottom:14px">
+          <div class="fld"><label>Surface chloride C_s <em>% binder</em></label><input type="number" id="inCs" value="2.0" min="0.2" max="8" step="0.1"></div>
+          <div class="fld"><label>Initial C₀ <em>% binder</em></label><input type="number" id="inC0" value="0.10" min="0" max="1" step="0.05"></div>
+          <div class="fld"><label>Threshold C_crit <em>% binder</em></label><input type="number" id="inCcrit" value="0.40" min="0.1" max="1.5" step="0.05"></div>
+          <div class="fld"><label>Propagation t_prop <em>yr</em></label><input type="number" id="inTprop" value="10" min="0" max="30" step="1"></div>
+        </div>
+        <p class="modelnote">Chloride ingress follows Fick's second law with time-dependent apparent diffusivity,
+        <b>C(x,t) = C_s − (C_s − C₀)·erf( x / 2√(D·t) )</b>, where <b>D(t) = D_RCM·(t₀/t)^α</b> (t₀ = 28 d, α per binder type).
+        The carbonation front advances as <b>x_c = K·√t</b>. Service life = time to depassivation at the bar depth
+        (C(c,t) ≥ C_crit, or x_c ≥ c) plus the propagation period entered above. C_s is auto-set from the selected
+        chloride class and may be overridden with project data.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ LIVE PANEL ============ -->
+  <aside class="colpanel">
+    <div class="panel">
+      <div class="p-title">LIVE READOUT</div>
+      <div class="pbox">
+        <div class="pbox-t">GOVERNING SPECIFICATION</div>
+        <div class="srow"><span>GOVERNING CLASS</span><b id="pGov">—</b></div>
+        <div class="srow"><span>MAX w/c</span><b id="pWc">—</b></div>
+        <div class="srow"><span>MIN STRENGTH</span><b id="pStr">—</b></div>
+        <div class="srow"><span>MIN BINDER</span><b id="pCem">—</b></div>
+        <div class="srow"><span>MIN AIR</span><b id="pAir">—</b></div>
+        <div class="srow"><span>COVER c_nom</span><b id="pCover">—</b></div>
+      </div>
+      <div class="pbox dpi" id="dpiBox">
+        <div class="pbox-t">DURABILITY PERFORMANCE INDEX</div>
+        <div class="dpi-main"><span class="dpi-n" id="dpiVal">—</span><span class="dpi-g" id="dpiGrade">–</span></div>
+        <div class="bar"><div class="ruler"></div><div class="track"><div class="fillbar" id="dpiFill"></div></div></div>
+      </div>
+      <div class="pbox">
+        <div class="pbox-t">COMPLIANCE CHECKS</div>
+        <div id="checkList"></div>
+      </div>
+      <button type="button" class="run" id="runBtn">
+        <span id="runLbl">RUN EVALUATION</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <i class="dot" id="dirtyDot" hidden></i>
+      </button>
+      <button type="button" class="printb" id="printBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        PRINT / PDF REPORT
+      </button>
+      <div class="p-foot">READOUT UPDATES LIVE WITH WORKSHEET INPUTS</div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============ RESULTS ============ -->
+<section id="results" class="results" hidden>
+  <header class="res-h">
+    <div class="res-meta">
+      <span class="n">07</span>
+      <div><h2>Evaluation Report</h2><p id="resSub"></p></div>
+    </div>
+    <div class="stamp-slot" id="stampSlot"></div>
+  </header>
+  <p class="verdict" id="verdictLine"></p>
+  <div class="charts">
+    <figure class="fig">
+      <figcaption><span>FIG. 1</span>DETERIORATION FRONT DEPTH — GOVERNING MECHANISMS</figcaption>
+      <canvas id="chart1"></canvas>
+      <div class="legend" id="leg1"></div>
+      <p class="cap" id="cap1"></p>
+    </figure>
+    <figure class="fig">
+      <figcaption><span>FIG. 2</span><span id="fig2t"></span></figcaption>
+      <canvas id="chart2"></canvas>
+      <div class="legend" id="leg2"></div>
+      <p class="cap" id="cap2"></p>
+    </figure>
+  </div>
+  <div class="blk">
+    <h3>SERVICE-LIFE PREDICTION</h3>
+    <div id="slTable"></div>
+  </div>
+  <div class="blk">
+    <h3>RECOMMENDATIONS</h3>
+    <div id="recList"></div>
+  </div>
+  <div class="blk">
+    <h3>RECORD OF INPUT DATA</h3>
+    <div class="record" id="recordGrid"></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h4>ASSUMPTIONS</h4>
+        <ul>
+          <li>Structural class S4, 50-year reference design life basis, Δc_dev = 10 mm (EC2 §4.4.1.3).</li>
+          <li>D_app(t) = D_RCM·(t₀/t)^α with t₀ = 28 d; laboratory-to-field conversion factors taken as 1.0.</li>
+          <li>Depassivation at C(c,t) ≥ C_crit = 0.4 % binder (chlorides) or x_c ≥ c (carbonation); propagation period user-defined.</li>
+          <li>Execution per EN 13670 assumed: full compaction, ≥ 7-day moist curing, cover within tolerance.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>REFERENCES</h4>
+        <ul>
+          <li>EN 206:2013+A2 — Specification, performance, production and conformity (Tab. 1, 2, E.1N).</li>
+          <li>EN 1992-1-1 — Design of concrete structures, durability and cover (§4.4, Tab. 4.4N).</li>
+          <li>fib Bulletin 34 — Model Code for Service Life Design; NT Build 492 (RCM); ASTM C457 (air-void system).</li>
+          <li>RILEM AAR-7.1 — Alkali–silica reactivity screening and avoidance.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="disc">DURACHEK is an indicative design aid for preliminary durability assessment. It does not replace project-specific testing, national annex values, or the judgement of a qualified materials engineer.</p>
+  </div>
+</footer>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+/* ---------- reference data ---------- */
+const STR=['C20/25','C25/30','C30/37','C35/45','C40/50','C45/55','C50/60'];
+const EXPO={
+ XC1:{wc:.65,cem:260,str:0,cover:15,air:null},
+ XC2:{wc:.60,cem:280,str:1,cover:25,air:null},
+ XC3:{wc:.55,cem:280,str:2,cover:30,air:null},
+ XC4:{wc:.50,cem:300,str:2,cover:35,air:null},
+ XD1:{wc:.50,cem:300,str:2,cover:35,air:null},
+ XD2:{wc:.45,cem:320,str:3,cover:40,air:null},
+ XD3:{wc:.45,cem:320,str:3,cover:45,air:null},
+ XS1:{wc:.50,cem:300,str:2,cover:35,air:null},
+ XS2:{wc:.45,cem:320,str:3,cover:40,air:null},
+ XS3:{wc:.45,cem:320,str:3,cover:45,air:null},
+ XF1:{wc:.55,cem:280,str:2,cover:null,air:null},
+ XF2:{wc:.55,cem:300,str:1,cover:null,air:4.0},
+ XF3:{wc:.50,cem:300,str:2,cover:null,air:4.0},
+ XF4:{wc:.45,cem:320,str:2,cover:null,air:4.0},
+ XA1:{wc:.55,cem:280,str:2,cover:null,air:null},
+ XA2:{wc:.50,cem:320,str:2,cover:null,air:null},
+ XA3:{wc:.45,cem:320,str:3,cover:null,air:null}
+};
+const EXPO_DESC={
+ XC1:'dry or permanently wet',XC2:'wet, rarely dry',XC3:'moderate humidity',XC4:'alternating wet & dry',
+ XD1:'chlorides — airborne / moderate humidity',XD2:'chlorides — wet, rarely dry',XD3:'chlorides — splash & spray',
+ XS1:'marine — airborne salt',XS2:'marine — submerged',XS3:'marine — splash & tidal',
+ XF1:'frost — moderate saturation, no salt',XF2:'frost — moderate saturation + salt',
+ XF3:'frost — high saturation, no salt',XF4:'frost — high saturation + salt',
+ XA1:'slightly aggressive ground',XA2:'moderately aggressive',XA3:'highly aggressive'
+};
+const CEMENTS={
+ 'CEM I 42.5':{alpha:0.30,sr:false,note:'Portland cement'},
+ 'CEM I/SR 42.5':{alpha:0.30,sr:true,note:'Sulfate-resisting Portland cement'},
+ 'CEM II/A-V':{alpha:0.45,sr:false,note:'Portland + 6–20 % fly ash'},
+ 'CEM II/B-V':{alpha:0.55,sr:false,note:'Portland + 21–35 % fly ash'},
+ 'CEM III/A':{alpha:0.60,sr:false,note:'Portland + 36–65 % GGBS'},
+ 'CEM III/B':{alpha:0.70,sr:true,note:'Portland + 66–80 % GGBS — high sulfate resistance'},
+ 'CEM I + SF':{alpha:0.50,sr:false,note:'Portland + 8–10 % silica fume'}
+};
+const PRESETS=[
+ {v:'custom',t:'Custom (manual class selection)',c:null},
+ {v:'indoor',t:'Indoor — dry / permanently heated',c:['XC1']},
+ {v:'indoor-wet',t:'Indoor — high humidity, condensation',c:['XC3']},
+ {v:'sheltered',t:'Outdoor — sheltered from rain',c:['XC3']},
+ {v:'rain',t:'Outdoor — exposed to rain',c:['XC4']},
+ {v:'frost',t:'Cold climate — freshwater freeze–thaw',c:['XF3','XC4']},
+ {v:'salt',t:'Cold climate — de-icing salt, horizontal surfaces',c:['XD1','XF4','XC4']},
+ {v:'bridge',t:'Bridge deck — chloride spray, moderate climate',c:['XD1','XC4']},
+ {v:'marine-air',t:'Marine — coastal, airborne salt',c:['XS1','XC4']},
+ {v:'marine-splash',t:'Marine — splash & tidal zone',c:['XS3','XC4']},
+ {v:'marine-sub',t:'Marine — permanently submerged',c:['XS2','XC2']},
+ {v:'buried',t:'Buried — non-aggressive soil & groundwater',c:['XC2']},
+ {v:'sulfate',t:'Buried — sulfate-rich groundwater',c:['XC2','XA2']}
+];
+const FAMS=[
+ {key:'XC',title:'XC — CARBONATION-INDUCED CORROSION',classes:['XC1','XC2','XC3','XC4']},
+ {key:'XD',title:'XD — CHLORIDES, DE-ICING SALTS',classes:['XD1','XD2','XD3']},
+ {key:'XS',title:'XS — CHLORIDES, SEA WATER',classes:['XS1','XS2','XS3']},
+ {key:'XF',title:'XF — FREEZE–THAW ATTACK',classes:['XF1','XF2','XF3','XF4']},
+ {key:'XA',title:'XA — CHEMICAL ATTACK',classes:['XA1','XA2','XA3']}
+];
+const CS_MAP={XD1:1.5,XD2:3.0,XD3:4.0,XS1:2.5,XS2:3.5,XS3:5.0};
+const REACT={nr:'Non-reactive — assessed',pr:'Potentially reactive — opaline/siliceous',na:'Not assessed'};
+const MITS={none:'None',la:'Low-alkali cement (≤ 0.60 % Na₂Oeq)',scm:'SCM ≥ 25 % (PFA / GGBS)',agg:'Certified non-reactive aggregate'};
+
+/* ---------- inline icons ---------- */
+const SV=(p)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC={
+ check:SV('<path d="M20 6 9 17l-5-5"/>'),
+ x:SV('<path d="M18 6 6 18M6 6l12 12"/>'),
+ warn:SV('<path d="M10.3 3.8 1.8 18.2A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3.8L13.7 3.8a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
+ info:SV('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'),
+ na:SV('<path d="M5 12h14"/>')
+};
+
+/* ---------- math: erf / erf⁻¹ ---------- */
+function erf(x){const s=Math.sign(x);x=Math.abs(x);const t=1/(1+0.3275911*x);
+ const y=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+ return s*y;}
+function erfInv(y){let lo=-1,hi=1;for(let i=0;i<70;i++){const m=(lo+hi)/2;if(erf(m)<y)lo=m;else hi=m;}return (lo+hi)/2;}
+
+/* ---------- state ---------- */
+const selected=new Set(['XC4']);
+let userCsTouched=false,dirty=false,lastRunEv=null;
+const fmtY=v=>!isFinite(v)?'—':(v>=100?Math.round(v):v.toFixed(1))+' yr';
+
+function readState(){
+ const num=(id,d)=>{const v=parseFloat($(id).value);return isFinite(v)?v:d;};
+ return{
+  name:$('inName').value.trim(),ref:$('inRef').value.trim(),by:$('inBy').value.trim(),
+  life:clamp(num('inLife',50),10,150),
+  classes:[...selected],
+  cement:$('inCement').value,
+  wc:num('inWc',.5),binder:num('inBinder',310),strIdx:$('inStr').selectedIndex,
+  cover:num('inCover',45),drcm:num('inDrcm',10),k:num('inK',3.8),
+  air:num('inAir',1.5),spacing:num('inSpacing',310),
+  so4w:num('inSo4w',0),so4s:num('inSo4s',0),
+  reactivity:$('inReactivity').value,alkali:num('inAlkali',.75),mitigation:$('inMit').value,
+  cs:num('inCs',2),c0:num('inC0',.1),ccrit:num('inCcrit',.4),tprop:num('inTprop',10)
+ };
+}
+
+/* ---------- governing requirements ---------- */
+function governing(classes){
+ const sel=classes.map(c=>EXPO[c]).filter(Boolean);
+ const g={classes:[...classes],wc:null,cem:null,strIdx:-1,cover:null,air:null};
+ sel.forEach(s=>{
+  if(s.wc!=null)g.wc=g.wc==null?s.wc:Math.min(g.wc,s.wc);
+  if(s.cem!=null)g.cem=g.cem==null?s.cem:Math.max(g.cem,s.cem);
+  if(s.str!=null)g.strIdx=Math.max(g.strIdx,s.str);
+  if(s.cover!=null)g.cover=g.cover==null?s.cover:Math.max(g.cover,s.cover);
+  if(s.air!=null)g.air=g.air==null?s.air:Math.max(g.air,s.air);
+ });
+ g.hasXC=classes.some(c=>c.startsWith('XC'));
+ g.hasXD=classes.some(c=>c.startsWith('XD')||c.startsWith('XS'));
+ g.hasXF=classes.some(c=>c.startsWith('XF'));
+ g.hasXA=classes.some(c=>c.startsWith('XA'));
+ return g;
+}
+
+/* ---------- chemical classification ---------- */
+function chemClassify(st){
+ let sel=0;st.classes.forEach(c=>{if(c.startsWith('XA'))sel=Math.max(sel,+c[2]);});
+ let der=0,src='';
+ const w=st.so4w,s=st.so4s;
+ if(w>=3000){der=3;src=`groundwater ${w} mg/l`;}else if(w>=600){der=Math.max(der,2);src=`groundwater ${w} mg/l`;}
+ else if(w>=200){der=Math.max(der,1);src=`groundwater ${w} mg/l`;}
+ if(s>=12000){der=Math.max(der,3);src=`soil ${s} mg/kg`;}else if(s>=3000){der=Math.max(der,2);src=`soil ${s} mg/kg`;}
+ else if(s>=2000){der=Math.max(der,1);src=`soil ${s} mg/kg`;}
+ if(w>=6000)src+=` (exceeds XA3 — special measures)`;
+ return{selected:sel,derived:der,level:Math.max(sel,der),src};
+}
+
+/* ---------- service-life model ---------- */
+function scanT(z,d,cover,alpha){ // first crossing of 2·z·√(D(t)·t) = cover
+ const t0=.0767,D=t=>d*31.557*Math.pow(t0/Math.max(t,t0),alpha);
+ let pT=.05,pX=2*z*Math.sqrt(D(.05)*.05);
+ if(pX>=cover)return .05;
+ for(let i=1;i<=800;i++){const t=.05*Math.pow(6000,i/800),x=2*z*Math.sqrt(D(t)*t);
+  if(x>=cover)return pT+(t-pT)*(cover-pX)/(x-pX);pT=t;pX=x;}
+ return Infinity;
+}
+function invertD(st,alpha){ // max D_RCM meeting the design life at current cover
+ const t=d=>{const r=(st.cs-st.ccrit)/(st.cs-st.c0);
+  if(r<=0)return 0;if(r>=1)return Infinity;return scanT(erfInv(r),d,st.cover,alpha);};
+ if(t(1)<st.life)return null;if(t(30)>=st.life)return 30;
+ let lo=1,hi=30;for(let i=0;i<26;i++){const m=(lo+hi)/2;if(t(m)>=st.life)lo=m;else hi=m;}
+ return lo;
+}
+function runModel(st,gov){
+ const alpha=CEMENTS[st.cement].alpha,t0=.0767;
+ const m={alpha};
+ m.xcActive=gov.hasXC;m.chlActive=gov.hasXD;
+ m.tCarbInit=st.k>0?(st.cover/st.k)**2:Infinity;
+ m.carbFront=st.k*Math.sqrt(st.life);
+ m.kReq=st.cover/Math.sqrt(st.life);
+ m.z=null;m.tChlInit=Infinity;
+ if(st.cs>st.c0){
+  const r=(st.cs-st.ccrit)/(st.cs-st.c0);
+  if(r<=0)m.tChlInit=0;
+  else if(r<1){m.z=erfInv(r);m.tChlInit=scanT(m.z,st.drcm,st.cover,alpha);}
+ }
+ m.DL=st.drcm*31.557*Math.pow(t0/Math.max(st.life,t0),alpha);
+ m.chlFront=(m.z&&isFinite(m.tChlInit))?2*m.z*Math.sqrt(m.DL*st.life):Infinity;
+ m.slCarb=m.xcActive?m.tCarbInit+st.tprop:null;
+ m.slChl=m.chlActive?m.tChlInit+st.tprop:null;
+ const parts=[];
+ if(m.slCarb!=null)parts.push(['carbonation-induced corrosion',m.slCarb]);
+ if(m.slChl!=null)parts.push(['chloride-induced corrosion',m.slChl]);
+ if(parts.length){parts.sort((a,b)=>a[1]-b[1]);m.sl=parts[0][1];m.govLabel=parts[0][0];m.ratio=m.sl/st.life;}
+ else{m.sl=null;m.ratio=null;m.govLabel=null;}
+ m.dReq=m.chlActive?invertD(st,alpha):null;
+ return m;
+}
+
+/* ---------- scoring ---------- */
+function scoreAll(st,gov,chem,m){
+ const C=[];const add=(key,label,score,weight,status)=>C.push({key,label,score:Math.round(clamp(score,5,100)),weight,status});
+ if(gov.wc!=null){
+  const mg=gov.wc-st.wc;
+  if(mg>=0)add('wc','w/c ratio',65+mg*500,1.0,mg<=.004?'warn':'pass');
+  else add('wc','w/c ratio',70+mg*500,1.0,'fail');
+ }else add('wc','w/c ratio',st.wc<=.45?95:st.wc<=.5?88:st.wc<=.55?78:st.wc<=.6?66:55,.8,'na');
+ if(gov.strIdx>=0){const d=st.strIdx-gov.strIdx;
+  add('str','Strength class',d>=0?84+d*5:40,.7,d>=0?'pass':'fail');
+ }else add('str','Strength class',85,.6,'na');
+ if(gov.cem!=null){const d=st.binder-gov.cem;
+  if(d>=0)add('binder','Binder content',78+d*.8,.7,d<=10?'warn':'pass');
+  else add('binder','Binder content',80+d*.9,.7,'fail');
+ }else add('binder','Binder content',82,.6,'na');
+ if(gov.cover!=null){const req=gov.cover+10,d=st.cover-req;
+  if(d>=0)add('cover','Nominal cover',70+d*1.5,1.0,d<=5?'warn':'pass');
+  else add('cover','Nominal cover',75+d*3.5,1.0,'fail');
+ }else add('cover','Nominal cover',80,.25,'na');
+ if(gov.hasXD){
+  const d=st.drcm;
+  const s=d<=5?100:d<=8?90:d<=10?78:d<=12?66:d<=15?50:d<=20?38:26;
+  add('drcm','Chloride diffusivity',s,1.25,d<=10?'pass':d<=12?'warn':'fail');
+ }
+ if(gov.hasXC){
+  const r=(m.tCarbInit+st.tprop)/st.life;
+  const s=r>=1.5?100:r>=1.2?93:r>=1?84:r>=.8?62:r>=.6?45:r>=.4?28:15;
+  add('carb','Carbonation resistance',s,1.2,r>=1.15?'pass':r>=1?'warn':'fail');
+ }
+ if(gov.hasXF){
+  let airS=null;
+  if(gov.air!=null){const d=st.air-gov.air;airS=d>=1?95:d>=.4?88:d>=0?70:d>=-.5?45:25;}
+  const spS=st.spacing<=200?100:st.spacing<=230?92:st.spacing<=250?80:st.spacing<=300?55:st.spacing<=350?35:20;
+  let stt='pass';
+  if((gov.air!=null&&st.air<gov.air-.3)||st.spacing>350)stt='fail';
+  else if((gov.air!=null&&st.air<gov.air)||st.spacing>250)stt='warn';
+  add('frost','Freeze–thaw resistance',Math.min(airS==null?spS:airS,spS),1.15,stt);
+ }
+ {const sr=CEMENTS[st.cement].sr,lvl=chem.level;
+  let s,stt='pass';
+  if(lvl===0)s=sr?96:93;
+  else if(lvl===1){s=sr?86:70;if(!sr)stt='warn';}
+  else if(lvl===2){s=sr?(st.wc<=.45?88:78):32;stt=sr?'pass':'fail';}
+  else{s=sr&&st.wc<=.45?88:22;stt=sr?'pass':'fail';}
+  add('chem','Chemical resistance',s,lvl>=1?1.0:.3,stt);}
+ {const eff=st.mitigation==='la'?.55:st.alkali;
+  let s,stt='pass';
+  if(st.reactivity==='nr')s=95;
+  else if(st.reactivity==='na'){s=62;stt='warn';}
+  else{ // potentially reactive
+   if(st.mitigation==='scm')s=86;else if(st.mitigation==='agg')s=92;
+   else if(eff<=.60){s=60;stt='warn';}else{s=18;stt='fail';}
+  }
+  add('asr','ASR precaution',s,.55,stt);}
+ if(m.sl!=null){const r=m.ratio;
+  const s=r>=1.3?100:r>=1.1?92:r>=1?82:r>=.85?60:r>=.7?45:25;
+  add('sl','Service life',s,1.3,r>=1.05?'pass':r>=1?'warn':'fail');}
+ const wsum=C.reduce((a,c)=>a+c.weight,0);
+ const dpi=wsum>0?C.reduce((a,c)=>a+c.score*c.weight,0)/wsum:null;
+ return{criteria:C,dpi};
+}
+const gradeOf=d=>d>=92?'A':d>=84?'B':d>=74?'C':d>=62?'D':'F';
+
+/* ---------- compliance checks ---------- */
+function buildChecks(st,gov,chem,m,score){
+ const S=Object.fromEntries(score.criteria.map(c=>[c.key,c]));
+ const stOf=k=>S[k]?S[k].status:'na';
+ const cs=st.classes.join(' + ');
+ const rows=[
+  {k:'wc',l:'Max w/c — EN 206',v:st.wc.toFixed(2),r:gov.wc!=null?'≤ '+gov.wc.toFixed(2):'—',sec:'sec02'},
+  {k:'str',l:'Min strength class',v:STR[st.strIdx],r:gov.strIdx>=0?'≥ '+STR[gov.strIdx]:'—',sec:'sec02'},
+  {k:'binder',l:'Min binder content',v:st.binder+' kg/m³',r:gov.cem!=null?'≥ '+gov.cem:'—',sec:'sec02'},
+  {k:'cover',l:'Nominal cover',v:st.cover+' mm',r:gov.cover!=null?'≥ '+(gov.cover+10)+' mm':'—',sec:'sec03'},
+  {k:'air',l:'Total air (XF)',v:gov.hasXF&&gov.air!=null?st.air.toFixed(1)+' %':'—',
+   r:gov.air!=null?'≥ '+gov.air.toFixed(1)+' %':'no req.',sec:'sec04'},
+  {k:'frost',l:'Spacing factor (XF)',v:(gov.hasXF&&st.air>=3)?st.spacing+' μm':'—',
+   r:gov.hasXF?'≤ 250 μm':(gov.hasXF?'—':'no req.'),sec:'sec04'},
+  {k:'chem',l:'Sulfate resistance',v:chem.level?'XA'+chem.level+(CEMENTS[st.cement].sr?' · SR':' · non-SR'):st.so4w+' mg/l',
+   r:chem.level>=2?'SR binder':chem.level===1?'SR advised':'≤ 200 mg/l',sec:'sec05'},
+  {k:'asr',l:'ASR precaution',v:REACT[st.reactivity].split(' —')[0]+' · '+st.alkali.toFixed(2)+' %',
+   r:st.reactivity==='pr'?'mitigate':'screen agg.',sec:'sec05'},
+  {k:'drcm',l:'Chloride resistance',v:gov.hasXD?st.drcm.toFixed(1):'—',r:gov.hasXD?'≤ 10':'not gov.',sec:'sec04'},
+  {k:'carb',l:'Carbonation t₀',v:gov.hasXC?fmtY(m.tCarbInit):'—',r:gov.hasXC?'≥ '+st.life+' yr':'not gov.',sec:'sec04'},
+  {k:'sl',l:'Service life',v:m.sl!=null?fmtY(m.sl):'—',r:m.sl!=null?'≥ '+st.life+' yr':'no mech.',sec:'sec06'}
+ ];
+ rows.forEach(r=>r.status=stOf(r.k));
+ return rows;
+}
+
+/* ---------- evaluate ---------- */
+function evaluate(){
+ const st=readState();
+ const gov=governing(st.classes);
+ const chem=chemClassify(st);
+ const m=runModel(st,gov);
+ const score=scoreAll(st,gov,chem,m);
+ const checks=buildChecks(st,gov,chem,m,score);
+ const fails=checks.filter(c=>c.status==='fail').length;
+ const warns=checks.filter(c=>c.status==='warn').length;
+ const grade=score.dpi==null?'–':gradeOf(score.dpi);
+ let verdict;
+ if(!st.classes.length)verdict={key:'na',word:'NOT CLASSIFIED'};
+ else if(fails)verdict={key:'fail',word:'NON-CONFORMS'};
+ else if(warns||score.dpi<80||(m.ratio!=null&&m.ratio<1.15))verdict={key:'warn',word:'CONFORMS WITH RESERVATIONS'};
+ else verdict={key:'pass',word:'CONFORMS'};
+ return{st,gov,chem,model:m,score,checks,fails,warns,grade,verdict};
+}
+
+/* ---------- recommendations ---------- */
+function buildRecs(ev){
+ const R=[],{st,gov,chem,m}=ev,L=st.life;
+ const push=(sev,t,b)=>R.push({sev,t,b});
+ const cs=st.classes.join(' + ');
+ if(gov.wc!=null&&st.wc>gov.wc+1e-9)
+  push('fail','REDUCE WATER/CEMAND RATIO'.replace('WATER/CEMAND','WATER/CEM'),
+   `Specified w/c = ${st.wc.toFixed(2)} exceeds the maximum ${gov.wc.toFixed(2)} for governing exposure ${cs} (EN 206, Tab. E.1N). Reduce to ≤ ${gov.wc.toFixed(2)}, or justify the deviation by performance testing.`);
+ if(gov.strIdx>=0&&st.strIdx<gov.strIdx)
+  push('fail','RAISE STRENGTH CLASS',`Specified ${STR[st.strIdx]} is below the minimum ${STR[gov.strIdx]} required for ${cs}.`);
+ if(gov.cem!=null&&st.binder<gov.cem)
+  push('fail','INCREASE BINDER CONTENT',`${st.binder} kg/m³ is below the ${gov.cem} kg/m³ minimum for ${cs}. Raise the binder content or lower w/c at equal paste volume.`);
+ if(gov.cover!=null&&st.cover<gov.cover+10)
+  push('fail','INCREASE NOMINAL COVER',`Nominal cover ${st.cover} mm is short of the ${gov.cover+10} mm required for ${cs} (c_min,dur = ${gov.cover} mm + Δc_dev = 10 mm, EC2 Tab. 4.4N). Shortfall: ${gov.cover+10-st.cover} mm.`);
+ if(gov.hasXF){
+  if(gov.air!=null&&st.air<gov.air)
+   push('fail','AIR-ENTRAIN FOR FREEZE–THAW',`Total air ${st.air.toFixed(1)} % is below the ${gov.air.toFixed(1)} % required for the selected XF class. Target ${gov.air+.5}–${gov.air+1.5} % in delivered concrete and verify the void system (spacing factor ≤ 250 μm, ASTM C457).`);
+  if(st.spacing>250)
+   push(st.spacing>350?'fail':'warn','REFINE AIR-VOID SYSTEM',`Spacing factor ${st.spacing} μm is ${st.spacing>350?'beyond the usual acceptance limit':'above the 200–230 μm target'}. Adjust AEA dosage and confirm by ASTM C457 linear-traverse on hardened samples.`);
+  if(st.air<3)push('warn','NO ENTRAINED-AIR SYSTEM DETECTED','Air content is below 3 % under XF exposure — the air-void parameters entered cannot protect the paste. Entrain air, or reclassify the element if it is not actually frost-exposed.');
+ }
+ if(chem.level>=2&&!CEMENTS[st.cement].sr)
+  push('fail','SULFATE-RESISTING BINDER REQUIRED',`Exposure XA${chem.level} (${chem.src}) requires a sulfate-resisting binder (CEM I/SR or CEM III/B) with w/c ≤ ${(gov.wc!=null?gov.wc:0.50).toFixed(2)} (EN 206 §5.2.2 / Tab. 2).`);
+ if(chem.level===1&&!CEMENTS[st.cement].sr)
+  push('warn','CONSIDER SULFATE-RESISTING BINDER','XA1 environment: standard CEM I is workable, but a CEM III/A–B blend adds sulfate margin at modest cost.');
+ if(chem.derived>chem.selected)
+  push('warn','CHEMICAL CLASS UNDER-DECLARED',`Sulfate levels indicate XA${chem.derived} (${chem.src}) but only XA${chem.selected||'—'} is declared in Section 01. Add the class so the corresponding w/c and binder limits are enforced.`);
+ if(st.reactivity==='pr'&&st.mitigation==='none')
+  push(st.alkali>0.6?'fail':'warn','ASR RISK — REACTIVE AGGREGATE',`Potentially reactive aggregate with ${st.alkali.toFixed(2)} % Na₂Oeq cement ${st.alkali>0.6?'presents a high alkali–silica risk':'is borderline'}. Specify low-alkali cement (≤ 0.60 % Na₂Oeq) or ≥ 25 % PFA/GGBS, per RILEM AAR-7.`);
+ if(gov.hasXD&&st.drcm>10)
+  push(st.drcm>12?'fail':'warn','REDUCE CHLORIDE DIFFUSIVITY',`D_RCM = ${st.drcm.toFixed(1)} ×10⁻¹² m²/s is ${st.drcm>12?'above':'at the edge of'} the range expected for chloride-bearing service.${m.dReq!=null?` To meet the ${L}-yr design life at the current cover, target D_RCM ≤ ${m.dReq.toFixed(1)} ×10⁻¹² m²/s.`:''} Use ≥ 30 % GGBS/PFA or 6–8 % silica fume and verify on the trial mix (NT Build 492).`);
+ if(gov.hasXC&&m.tCarbInit<L)
+  push('fail','CARBONATION LIFE SHORTFALL',`Carbonation reaches the bars after ${fmtY(m.tCarbInit)} — short of the ${L}-yr design life. Increase cover to ≥ ${Math.ceil(m.carbFront)} mm or reduce K to ≤ ${(st.cover/Math.sqrt(L)).toFixed(1)} mm/√yr (moist curing, lower w/c, sufficient binder).`);
+ else if(gov.hasXC&&m.tCarbInit<L*1.15)
+  push('warn','CARBONATION MARGIN LIMITED',`Carbonation initiation at ${fmtY(m.tCarbInit)} leaves only ${Math.round((m.tCarbInit/L-1)*100)} % margin on the ${L}-yr design life.`);
+ if(m.chlActive&&isFinite(m.tChlInit)&&m.tChlInit<L)
+  push('fail','CHLORIDE INGRESS SHORTFALL',`C(c,t) reaches C_crit after ${fmtY(m.tChlInit)} — short of the ${L}-yr design life.${isFinite(m.chlFront)?` Increase nominal cover to ≥ ${Math.ceil(m.chlFront)} mm,`:' Increase cover,'}${m.dReq!=null?` or reduce D_RCM to ≤ ${m.dReq.toFixed(1)} ×10⁻¹² m²/s.`:''}`);
+ if(gov.wc!=null&&st.wc<=gov.wc&&st.wc>gov.wc-.005)
+  push('warn','ZERO MARGIN ON w/c LIMIT',`w/c sits at the ${gov.wc.toFixed(2)} limit. Impose a production target of ${(gov.wc-.03).toFixed(2)} to absorb batching and aggregate-moisture tolerances.`);
+ if(gov.cover!=null){const d=st.cover-(gov.cover+10);
+  if(d>=0&&d<=5)push('warn','MINIMAL COVER MARGIN',`Nominal cover is only ${d} mm above the required ${gov.cover+10} mm. Placement deviation is a leading cause of premature corrosion — add 5–10 mm or use rigid chairs at tight spacing.`);}
+ if(gov.cem!=null&&st.binder-gov.cem<=10&&st.binder>=gov.cem)
+  push('warn','MINIMAL BINDER MARGIN',`Binder content is only ${st.binder-gov.cem} kg/m³ above the EN 206 minimum. Production variability (±10–15 kg/m³) can push batches below the limit — set the plant target 20–30 kg/m³ higher.`);
+ push('note','EXECUTION GOVERNS','All predictions assume full compaction and ≥ 7 days of moist curing (EN 13670). Poor curing degrades the cover zone — where durability actually happens — beyond anything a mix design can recover.');
+ if(st.reactivity==='na')push('note','ASSESS AGGREGATE REACTIVITY','Alkali–silica reactivity has not been assessed. Screen the aggregate petrographically or by ASTM C1260/C1293 before supply, per RILEM AAR-7.');
+ if(!ev.fails&&ev.warns===0)
+  push('note','NO FINDINGS','All prescriptive limits are met with margin and the predicted service life is comfortable. Confirm the values on the trial mix before production.');
+ else if(!ev.fails)
+  push('note','STATUS','No prescriptive non-conformances — the items above are advisory reservations and margin warnings.');
+ if(m.sl!=null&&m.ratio>=1.5)
+  push('note','SERVICE LIFE',`The governing mechanism (${m.govLabel}) yields ${fmtY(m.sl)} ≈ ${m.ratio.toFixed(1)}× the design life.`);
+ return R;
+}
+
+/* ---------- rendering: live panel ---------- */
+function renderPanel(ev){
+ const g=ev.gov;
+ $('pGov').textContent=g.classes.length?g.classes.join(' + '):'—';
+ $('pWc').textContent=g.wc!=null?'≤ '+g.wc.toFixed(2):'—';
+ $('pStr').textContent=g.strIdx>=0?'≥ '+STR[g.strIdx]:'—';
+ $('pCem').textContent=g.cem!=null?'≥ '+g.cem+' kg/m³':'—';
+ $('pAir').textContent=g.air!=null?'≥ '+g.air.toFixed(1)+' %':'—';
+ $('pCover').textContent=g.cover!=null?'≥ '+(g.cover+10)+' mm':'—';
+ if(ev.score.dpi==null){$('dpiVal').textContent='—';$('dpiGrade').textContent='–';$('dpiFill').style.width='0';$('dpiBox').className='pbox dpi';}
+ else{$('dpiVal').textContent=Math.round(ev.score.dpi);$('dpiGrade').textContent=ev.grade;
+  $('dpiFill').style.width=Math.round(ev.score.dpi)+'%';$('dpiBox').className='pbox dpi g'+ev.grade;}
+ $('checkList').innerHTML=ev.checks.map(c=>
+  `<div class="ck" data-sec="${c.sec}" title="Show related input">
+    <span class="ck-ic ${c.status}">${IC[c.status==='pass'?'check':c.status==='warn'?'warn':c.status==='fail'?'x':'na']}</span>
+    <span class="ck-nm">${c.l}</span>
+    <span class="ck-vl">${c.v}${c.r&&c.r!=='—'?` <em>/ ${c.r}</em>`:''}</span></div>`).join('');
+}
+ $('checkList').addEventListener('click',e=>{
+ const row=e.target.closest('.ck');if(!row)return;
+ const sec=$(row.dataset.sec);if(!sec)return;
+ sec.scrollIntoView({behavior:'smooth',block:'center'});
+ sec.classList.add('flash');setTimeout(()=>sec.classList.remove('flash'),1100);
+});
+
+/* ---------- rendering: sliders ---------- */
+const SLD=[
+ {inp:'inWc',row:'rowWc',fill:'fillWc',out:'outWc',tick:'tickWc',tickL:'tickLblWc',zone:'zoneWc',hint:'hintWc',min:.30,max:.75,dec:2,dir:'max',
+  limit:ev=>ev.gov.wc,req:(v)=>`LIMIT ≤ ${v.toFixed(2)} — EN 206 TAB. E.1N`,na:'NO LIMIT — EXPOSURE NOT SET'},
+ {inp:'inBinder',row:'rowBinder',fill:'fillBinder',out:'outBinder',tick:'tickBinder',tickL:'tickLblBinder',zone:'zoneBinder',hint:'hintBinder',min:240,max:460,dec:0,dir:'min',
+  limit:ev=>ev.gov.cem,req:(v)=>`LIMIT ≥ ${v} kg/m³ — EN 206`,na:'NO LIMIT — EXPOSURE NOT SET'},
+ {inp:'inCover',row:'rowCover',fill:'fillCover',out:'outCover',tick:'tickCover',tickL:'tickLblCover',zone:'zoneCover',hint:'hintCover',min:10,max:70,dec:0,dir:'min',
+  limit:ev=>ev.gov.cover!=null?ev.gov.cover+10:null,req:(v)=>`LIMIT ≥ ${v} mm — EC2 c_min,dur + Δc_dev`,na:'NO DURABILITY COVER REQ. (NO XC/XD/XS)'},
+ {inp:'inDrcm',row:'rowDrcm',fill:'fillDrcm',out:'outDrcm',tick:'tickDrcm',tickL:'tickLblDrcm',zone:'zoneDrcm',hint:'hintDrcm',min:1,max:30,dec:1,dir:'max',
+  limit:ev=>ev.gov.hasXD?10:null,req:(v)=>`TARGET ≤ ${v} — XD/XS GOOD PRACTICE`,na:'NOT GOVERNING — NO XD/XS CLASS'},
+ {inp:'inK',row:'rowK',fill:'fillK',out:'outK',tick:'tickK',tickL:'tickLblK',zone:'zoneK',hint:'hintK',min:.5,max:12,dec:1,dir:'max',
+  limit:ev=>ev.gov.hasXC?ev.model.kReq:null,req:(v,ev)=>`NEED ≤ ${v.toFixed(1)} FOR t₀ ≥ ${ev.st.life} yr`,na:'NOT GOVERNING — NO XC CLASS'},
+ {inp:'inAir',row:'rowAir',fill:'fillAir',out:'outAir',tick:'tickAir',tickL:'tickLblAir',zone:'zoneAir',hint:'hintAir',min:0,max:8,dec:1,dir:'min',
+  limit:ev=>ev.gov.air,req:(v)=>`LIMIT ≥ ${v.toFixed(1)} % — EN 206`,na:'NOT GOVERNING — NO XF CLASS'},
+ {inp:'inSpacing',row:'rowSpacing',fill:'fillSpacing',out:'outSpacing',tick:'tickSpacing',tickL:'tickLblSpacing',zone:'zoneSpacing',hint:'hintSpacing',min:50,max:600,dec:0,dir:'max',
+  limit:ev=>ev.gov.hasXF?250:null,req:()=>'TARGET ≤ 250 μm — ASTM C457',na:'NOT GOVERNING — NO XF CLASS'}
+];
+function updateSliders(ev){
+ SLD.forEach(s=>{
+  const val=parseFloat($(s.inp).value);
+  $(s.fill).style.width=clamp((val-s.min)/(s.max-s.min),0,1)*100+'%';
+  $(s.out).textContent=val.toFixed(s.dec);
+  const L=s.limit(ev),hint=$(s.hint),row=$(s.row);
+  let viol=false;
+  if(L!=null){
+   if(L>=s.min&&L<=s.max){
+    const lp=clamp((L-s.min)/(s.max-s.min),0,1)*100;
+    $(s.tick).style.display='block';$(s.tick).style.left=lp+'%';$(s.tickL).textContent=L.toFixed(s.dec);
+    $(s.zone).style.display='block';
+    if(s.dir==='max'){$(s.zone).style.left='0';$(s.zone).style.width=lp+'%';}
+    else{$(s.zone).style.left=lp+'%';$(s.zone).style.width=(100-lp)+'%';}
+   }else{$(s.tick).style.display='none';$(s.zone).style.display='none';}
+   viol=s.dir==='max'?val>L+1e-9:val<L-1e-9;
+   if(viol){hint.textContent=(s.dir==='max'?'EXCEEDS LIMIT BY ':'SHORT OF LIMIT BY ')+Math.abs(val-L).toFixed(s.dec);hint.classList.add('viol');}
+   else{hint.textContent=s.req(L,ev);hint.classList.remove('viol');}
+  }else{
+   $(s.tick).style.display='none';$(s.zone).style.display='none';
+   hint.textContent=s.na;hint.classList.remove('viol');
+  }
+  row.classList.toggle('viol',viol);
+ });
+}
+
+/* ---------- tags & relevance ---------- */
+function updateTags(ev){
+ const fams=[];
+ if(ev.gov.hasXC)fams.push('XC');if(ev.gov.hasXD)fams.push('XD/XS');
+ if(ev.gov.hasXF)fams.push('XF');if(ev.gov.hasXA)fams.push('XA');
+ const t=$('tagEnv');t.textContent=fams.length?fams.join(' · '):'NOT CLASSIFIED';
+ t.classList.toggle('gov',fams.length>0);
+ const set=(id,on,mech)=>{const el=$(id);el.textContent=mech+(on?' — GOVERNING':' — N/G');el.classList.toggle('on',on);};
+ set('tagDrcm',ev.gov.hasXD,'XD/XS');
+ set('tagK',ev.gov.hasXC,'XC');
+ set('tagAir',ev.gov.hasXF,'XF');
+ set('tagSpacing',ev.gov.hasXF,'XF');
+ $('rowDrcm').classList.toggle('dim',!ev.gov.hasXD);
+ $('rowK').classList.toggle('dim',!ev.gov.hasXC);
+ $('rowAir').classList.toggle('dim',!ev.gov.hasXF);
+ $('rowSpacing').classList.toggle('dim',!ev.gov.hasXF);
+ const c=ev.chem,st=ev.st;
+ $('chemNote').textContent=!c.level
+  ?`Derived chemical class: none — SO₄²⁻ ${st.so4w} mg/l (water) · ${st.so4s} mg/kg (soil) · EN 206 Tab. 2.`
+  :`Derived chemical class: XA${c.level} from ${c.src} (EN 206 Tab. 2).`+(c.derived>c.selected?` Only XA${c.selected||'—'} declared — add XA${c.derived} in Section 01.`:'');
+ $('cemNote').textContent=CEMENTS[st.cement].note.toUpperCase()+' · AGING EXPONENT α = '+CEMENTS[st.cement].alpha.toFixed(2);
+}
+
+/* ---------- charts ---------- */
+const CK={INK:'#211E19',ACC:'#C13A17',PASS:'#2E7A50',FAIL:'#B3362D',GRID:'#ECE8DE',AX:'#C7C1B2',TXT:'#8A8478'};
+const MONO='"IBM Plex Mono",monospace';
+function cvSetup(cv,h){
+ const w=cv.clientWidth||cv.parentElement.clientWidth,dpr=window.devicePixelRatio||1;
+ cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.height=h+'px';
+ const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ return{ctx,w};
+}
+const stepOf=(arr,t)=>{for(const s of arr)if(s>=t)return s;return arr[arr.length-1];};
+const niceCeil=v=>{for(const c of[10,20,25,30,40,50,60,80,100,120,150,200,250,300,400])if(c>=v)return c;return Math.ceil(v/100)*100;};
+
+function drawFronts(ev){
+ const cv=$('chart1');if(!cv.clientWidth)return;
+ const{ctx,w}=cvSetup(cv,270);
+ const st=ev.st,m=ev.model;
+ const pad={l:52,r:18,t:20,b:36},pw=w-pad.l-pad.r,ph=270-pad.t-pad.b;
+ const L=st.life,Tmax=Math.min(200,Math.max(L*1.5,25));
+ const Dof=t=>st.drcm*31.557*Math.pow(.0767/Math.max(t,.0767),m.alpha);
+ const xCarb=t=>st.k*Math.sqrt(t);
+ const xChl=t=>m.z?2*m.z*Math.sqrt(Dof(t)*t):null;
+ let yMax=Math.max(st.cover*1.25,xCarb(Tmax)*1.1,20);
+ if(m.chlActive&&m.z){const xc=xChl(Tmax);if(isFinite(xc))yMax=Math.max(yMax,xc*1.1);}
+ yMax=niceCeil(yMax);
+ const X=t=>pad.l+t/Tmax*pw,Y=d=>pad.t+(1-d/yMax)*ph;
+ ctx.font='10px '+MONO;ctx.lineWidth=1;
+ const xs=stepOf([5,10,20,25,50,100],Tmax/5),ys=stepOf([10,20,25,50,100],yMax/4);
+ ctx.strokeStyle=CK.GRID;ctx.fillStyle=CK.TXT;ctx.textAlign='center';
+ for(let v=0;v<=Tmax+1e-9;v+=xs){ctx.beginPath();ctx.moveTo(X(v),pad.t);ctx.lineTo(X(v),pad.t+ph);ctx.stroke();ctx.fillText(String(Math.round(v)),X(v),pad.t+ph+14);}
+ ctx.textAlign='right';
+ for(let v=0;v<=yMax+1e-9;v+=ys){ctx.beginPath();ctx.moveTo(pad.l,Y(v));ctx.lineTo(pad.l+pw,Y(v));ctx.stroke();ctx.fillText(String(Math.round(v)),pad.l-6,Y(v)+3);}
+ ctx.textAlign='center';ctx.fillText('TIME — yr',pad.l+pw/2,264);
+ ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText('DEPTH — mm',0,0);ctx.restore();
+ ctx.strokeStyle=CK.AX;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+ // design life
+ ctx.setLineDash([5,4]);ctx.strokeStyle='#9A948A';
+ ctx.beginPath();ctx.moveTo(X(L),pad.t);ctx.lineTo(X(L),pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.TXT;ctx.textAlign='left';ctx.fillText('L',X(L)+5,pad.t+10);
+ // cover
+ ctx.setLineDash([6,4]);ctx.strokeStyle=CK.PASS;
+ ctx.beginPath();ctx.moveTo(pad.l,Y(st.cover));ctx.lineTo(pad.l+pw,Y(st.cover));ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.PASS;ctx.textAlign='right';ctx.fillText('c = '+st.cover+' mm',pad.l+pw-4,Y(st.cover)-5);
+ // carbonation front
+ ctx.strokeStyle=CK.INK;ctx.lineWidth=1.8;ctx.beginPath();
+ for(let i=0;i<=160;i++){const t=Tmax*i/160,x=X(t),y=Y(Math.min(xCarb(t),yMax*1.5));i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+ ctx.stroke();
+ // chloride front
+ if(m.chlActive&&m.z){ctx.strokeStyle=CK.ACC;ctx.beginPath();
+  for(let i=0;i<=160;i++){const t=Tmax*i/160,d=xChl(t);if(!isFinite(d))break;const x=X(t),y=Y(Math.min(d,yMax*1.5));i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+  ctx.stroke();}
+ ctx.lineWidth=1;
+ // initiation markers
+ const mark=(tI,col)=>{if(!isFinite(tI)||tI<1||tI>Tmax)return;
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(X(tI),Y(st.cover),4,0,7);ctx.fill();
+  ctx.textAlign='center';ctx.fillText('t₀ = '+Math.round(tI)+' yr',clamp(X(tI),pad.l+28,pad.l+pw-30),Y(st.cover)+16);};
+ if(m.xcActive)mark(m.tCarbInit,CK.INK);
+ if(m.chlActive)mark(m.tChlInit,CK.ACC);
+ $('leg1').innerHTML=
+  `<span class="li"><i style="background:${CK.INK}"></i>CARBONATION FRONT · K√t</span>`+
+  (m.chlActive&&m.z?`<span class="li"><i style="background:${CK.ACC}"></i>CHLORIDE FRONT · 2z√(D·t)</span>`:'')+
+  `<span class="li"><i class="d" style="border-color:${CK.PASS}"></i>COVER c = ${st.cover} mm</span>`+
+  `<span class="li"><i class="d" style="border-color:${CK.TXT}"></i>DESIGN LIFE ${L} yr</span>`;
+ $('cap1').textContent=`D(t) = D_RCM·(t₀/t)^α · α = ${m.alpha.toFixed(2)} (${st.cement}) · initiation when the front meets the cover line.`;
+}
+
+function drawProfile(ev){
+ const cv=$('chart2');if(!cv.clientWidth)return;
+ const{ctx,w}=cvSetup(cv,270);
+ const st=ev.st,m=ev.model;
+ const pad={l:52,r:18,t:20,b:36},pw=w-pad.l-pad.r,ph=270-pad.t-pad.b;
+ const L=st.life;
+ let xDom,yLo,yHi,curve;
+ if(m.chlActive){
+  xDom=Math.max(80,st.cover*1.9);yLo=0;yHi=Math.max(st.cs*1.25,st.ccrit*1.8,1);
+  curve=x=>st.cs-(st.cs-st.c0)*erf(x/(2*Math.sqrt(m.DL*L)));
+  $('fig2t').textContent='CHLORIDE PROFILE AT t = DESIGN LIFE';
+ }else{
+  xDom=Math.max(60,m.carbFront*2.4,st.cover*1.9);yLo=8;yHi=13.5;
+  curve=x=>9.2+3.4/(1+Math.exp((x-m.carbFront)/2.2));
+  $('fig2t').textContent='PORE-SOLUTION pH PROFILE AT t = DESIGN LIFE';
+ }
+ const X=x=>pad.l+x/xDom*pw,Y=v=>pad.t+(1-(v-yLo)/(yHi-yLo))*ph;
+ ctx.font='10px '+MONO;ctx.lineWidth=1;
+ const xs=stepOf([5,10,20,25,50],xDom/5);
+ const yspan=yHi-yLo,ys=stepOf([.25,.5,1,2,5],yspan/4);
+ ctx.strokeStyle=CK.GRID;ctx.fillStyle=CK.TXT;ctx.textAlign='center';
+ for(let v=0;v<=xDom+1e-9;v+=xs){ctx.beginPath();ctx.moveTo(X(v),pad.t);ctx.lineTo(X(v),pad.t+ph);ctx.stroke();ctx.fillText(String(Math.round(v)),X(v),pad.t+ph+14);}
+ ctx.textAlign='right';
+ for(let v=yLo;v<=yHi+1e-9;v+=ys){const lab=m.chlActive?v.toFixed(1):String(Math.round(v));
+  ctx.beginPath();ctx.moveTo(pad.l,Y(v));ctx.lineTo(pad.l+pw,Y(v));ctx.stroke();ctx.fillText(lab,pad.l-6,Y(v)+3);}
+ ctx.textAlign='center';ctx.fillText('DEPTH FROM SURFACE — mm',pad.l+pw/2,264);
+ ctx.save();ctx.translate(12,pad.t+ph/2);ctx.rotate(-Math.PI/2);
+ ctx.fillText(m.chlActive?'Cl⁻ — % BINDER':'pH — PORE SOLUTION',0,0);ctx.restore();
+ ctx.strokeStyle=CK.AX;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+ph);ctx.lineTo(pad.l+pw,pad.t+ph);ctx.stroke();
+ // threshold
+ const thr=m.chlActive?st.ccrit:11.5;
+ ctx.setLineDash([6,4]);ctx.strokeStyle=CK.FAIL;
+ ctx.beginPath();ctx.moveTo(pad.l,Y(thr));ctx.lineTo(pad.l+pw,Y(thr));ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.FAIL;ctx.textAlign='left';
+ ctx.fillText(m.chlActive?'C_crit = '+st.ccrit.toFixed(2)+' %':'pH 11.5 · DEPASSIVATION',pad.l+8,Y(thr)-5);
+ // cover
+ ctx.setLineDash([6,4]);ctx.strokeStyle=CK.PASS;
+ ctx.beginPath();ctx.moveTo(X(st.cover),pad.t);ctx.lineTo(X(st.cover),pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.PASS;ctx.textAlign='left';ctx.fillText('c = '+st.cover+' mm',X(st.cover)+5,pad.t+10);
+ // profile curve
+ ctx.strokeStyle=CK.ACC;ctx.lineWidth=1.8;ctx.beginPath();
+ for(let i=0;i<=160;i++){const x=xDom*i/160,y=clamp(curve(x),yLo,yHi);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));}
+ ctx.stroke();ctx.lineWidth=1;
+ // marker at cover
+ const cv0=clamp(curve(st.cover),yLo,yHi);
+ ctx.fillStyle=CK.INK;ctx.beginPath();ctx.arc(X(st.cover),Y(cv0),4,0,7);ctx.fill();
+ ctx.textAlign='right';ctx.fillText(m.chlActive?'C(c) = '+cv0.toFixed(2)+' %':'pH(c) = '+cv0.toFixed(1),X(st.cover)-8,clamp(Y(cv0)-8,pad.t+10,pad.t+ph-6));
+ $('leg2').innerHTML=m.chlActive
+  ?`<span class="li"><i style="background:${CK.ACC}"></i>C(x,t) — FICK II</span><span class="li"><i class="d" style="border-color:${CK.FAIL}"></i>C_crit THRESHOLD</span><span class="li"><i class="d" style="border-color:${CK.PASS}"></i>COVER c</span>`
+  :`<span class="li"><i style="background:${CK.ACC}"></i>CARBONATED pH &lt; 9.5 · SOUND pH &gt; 12.5</span><span class="li"><i class="d" style="border-color:${CK.FAIL}"></i>DEPASSIVATION pH</span><span class="li"><i class="d" style="border-color:${CK.PASS}"></i>COVER c</span>`;
+ $('cap2').textContent=m.chlActive
+  ?`t = ${L} yr · D_app = ${(m.DL/31.557).toFixed(1)} ×10⁻¹² m²/s (aged) · C(c) ${cv0>st.ccrit?'>':'≤'} threshold.`
+  :`t = ${L} yr · x_c = ${m.carbFront.toFixed(1)} mm (K = ${st.k} mm/√yr) · front ${m.carbFront>=st.cover?'has reached':'remains '+Math.max(0,st.cover-m.carbFront).toFixed(0)+' mm short of'} the cover line.`;
+}
+function drawCharts(ev){drawFronts(ev);drawProfile(ev);}
+
+/* ---------- rendering: report ---------- */
+function verdictText(ev){
+ const st=ev.st,m=ev.model,cs=st.classes.join(' + ');
+ if(ev.verdict.key==='na')return `<b>NOT CLASSIFIED.</b> No exposure classes are selected. Choose at least one environment (or a preset) in <b>Section 01</b> and re-run — every requirement in this worksheet is driven by the exposure classification.`;
+ if(ev.verdict.key==='fail')return `<b>NON-CONFORMING.</b> ${ev.fails} requirement${ev.fails>1?'s':''} of EN 206 / EN 1992-1-1 not met for exposure <b>${cs}</b>. The remedial measures marked in red below are required before this specification can be accepted.`;
+ if(ev.verdict.key==='pass')return `<b>CONFORMS.</b> All prescriptive limits for <b>${cs}</b> are satisfied with margin. Governing mechanism: ${m.govLabel}. Predicted service life <b>${fmtY(m.sl)}</b> = ${m.ratio.toFixed(1)}× the ${st.life}-yr design life.`;
+ return `<b>CONFORMS WITH RESERVATIONS.</b> All prescriptive limits for <b>${cs}</b> are met; ${ev.warns} marginal item${ev.warns>1?'s':''} noted below.`+
+  (m.sl!=null?` Governing mechanism: ${m.govLabel} — predicted service life <b>${fmtY(m.sl)}</b> against a ${st.life}-yr design life.`:``);
+}
+function renderResults(ev){
+ const st=ev.st,m=ev.model,date=new Date().toISOString().slice(0,10);
+ $('resSub').textContent=`${st.name||'Unnamed structure'} · ${st.classes.join(' + ')||'unclassified'} · ${date}`;
+ $('stampSlot').innerHTML=`<div class="stamp ${ev.verdict.key}"><div class="stamp-b">
+   <span class="sg">${ev.verdict.key==='na'?'–':ev.grade}</span>
+   <span class="sv">${ev.verdict.word}</span>
+   <span class="sd">DPI ${ev.score.dpi!=null?Math.round(ev.score.dpi):'—'} · ${date}</span></div></div>`;
+ const vl=$('verdictLine');vl.className='verdict v-'+ev.verdict.key;vl.innerHTML=verdictText(ev);
+ // SL table
+ let html=`<table class="slt"><tr><th>MECHANISM</th><th>INITIATION t₀</th><th>PROPAGATION</th><th>PREDICTED t_S</th><th>VS ${st.life} yr DESIGN</th></tr>`;
+ if(m.sl==null)html+=`<tr><td colspan="5">No corrosion mechanism governs (no XC/XD/XS class selected) — service life not assessed.</td></tr>`;
+ else{
+  const rows=[];
+  if(m.xcActive)rows.push(['Carbonation-induced corrosion (XC)',fmtY(m.tCarbInit),st.tprop+' yr',m.slCarb]);
+  if(m.chlActive)rows.push(['Chloride-induced corrosion (XD/XS)',isFinite(m.tChlInit)?fmtY(m.tChlInit):'∞',st.tprop+' yr',m.slChl]);
+  rows.forEach(r=>{const gov=Math.abs(r[3]-m.sl)<1e-9;
+   const ok=r[3]>=st.life;
+   html+=`<tr${gov?' class="gov"':''}><td>${r[0]}${gov?' · GOVERNING':''}</td><td>${r[1]}</td><td>${r[2]}</td><td>${fmtY(r[3])}</td>
+    <td class="${ok?'ok':'short'}">${ok?'MEETS':'SHORT'} ${r[3]>=st.year?'':''}${Math.round((r[3]/st.life-1)*100)>0?'+':''}${Math.round((r[3]/st.life-1)*100)} %</td></tr>`;});
+ }
+ html+='</table>';
+ $('slTable').innerHTML=html;
+ // recommendations
+ const recs=buildRecs(ev);
+ $('recList').innerHTML=recs.map(r=>
+  `<div class="r ${r.sev}"><span class="ric">${IC[r.sev==='fail'?'x':r.sev==='warn'?'warn':'info']}</span>
+   <div><h4>${r.t}</h4><p>${r.b}</p></div></div>`).join('');
+ // record
+ const pl=PRESETS.find(p=>p.v===$('inPreset').value);
+ const cells=[
+  ['STRUCTURE',st.name||'—'],['PROJECT REF',st.ref||'—'],['ASSESSED BY',st.by||'—'],
+  ['DATE',date],['EXPOSURE',st.classes.join(', ')||'—'],['DESIGN LIFE',st.life+' yr'],
+  ['ENVIRONMENT',pl?pl.t.toUpperCase():'—'],['CEMENT',st.cement+' — '+CEMENTS[st.cement].note],
+  ['w/c RATIO',st.wc.toFixed(2)],['BINDER',st.binder+' kg/m³'],['STRENGTH',STR[st.strIdx]],
+  ['NOM. COVER',st.cover+' mm'],['D_RCM',st.drcm.toFixed(1)+' ×10⁻¹² m²/s'],['CARB. K',st.k.toFixed(1)+' mm/√yr'],
+  ['TOTAL AIR',st.air.toFixed(1)+' %'],['SPACING',st.spacing+' μm'],
+  ['SO₄ WATER',st.so4w+' mg/l'],['SO₄ SOIL',st.so4s+' mg/kg'],['REACTIVITY',REACT[st.reactivity]],
+  ['ALKALI',st.alkali.toFixed(2)+' % Na₂Oeq'],['ASR MIT.',MITS[st.mitigation]],
+  ['C_s / C₀',st.cs.toFixed(1)+' / '+st.c0.toFixed(2)+' %'],['C_crit',st.ccrit.toFixed(2)+' %'],['t_PROP',st.tprop+' yr'],
+  ['MAX w/c REQ.',ev.gov.wc!=null?'≤ '+ev.gov.wc.toFixed(2):'—'],['MIN COVER REQ.',ev.gov.cover!=null?'≥ '+(ev.gov.cover+10)+' mm':'—'],
+  ['DPI / GRADE',(ev.score.dpi!=null?Math.round(ev.score.dpi)+' / '+ev.grade:'—')]
+ ];
+ $('recordGrid').innerHTML=cells.map(c=>`<div><span>${c[0]}</span><b>${c[1]}</b></div>`).join('');
+ requestAnimationFrame(()=>drawCharts(ev));
+}
+
+/* ---------- build static UI ---------- */
+function buildUI(){
+ // presets
+ $('inPreset').innerHTML=PRESETS.map(p=>`<option value="${p.v}">${p.t}</option>`).join('');
+ $('inPreset').value='rain';
+ // cements
+ $('inCement').innerHTML=Object.keys(CEMENTS).map(c=>`<option>${c}</option>`).join('');
+ $('inCement').value='CEM I 42.5';
+ // strength
+ $('inStr').innerHTML=STR.map((s,i)=>`<option${i===2?' selected':''}>${s}</option>`).join('');
+ // reactivity / mitigation
+ $('inReactivity').innerHTML=Object.entries(REACT).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+ $('inMit').innerHTML=Object.entries(MITS).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+ // chips
+ $('chipRows').innerHTML=FAMS.map(f=>
+  `<div class="chiprow"><span class="crlab">${f.title}</span><div class="chips">`+
+  f.classes.map(c=>`<button type="button" class="chip" data-c="${c}" title="${c} — ${EXPO_DESC[c]}">${c}</button>`).join('')+
+  `</div></div>`).join('');
+}
+function renderChips(){document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',selected.has(b.dataset.c)));}
+function syncPreset(){
+ const key=[...selected].sort().join(',');
+ const hit=PRESETS.find(p=>p.c&&[...p.c].sort().join(',')===key);
+ $('inPreset').value=hit?hit.v:'custom';
+}
+function syncCs(){
+ if(userCsTouched)return;
+ let cs=2.0;selected.forEach(c=>{if(CS_MAP[c])cs=Math.max(cs,CS_MAP[c]);});
+ $('inCs').value=cs.toFixed(1);
+}
+
+/* ---------- events ---------- */
+function markDirty(){if(lastRunEv){dirty=true;$('dirtyDot').hidden=false;}}
+function renderLive(){
+ const ev=evaluate();
+ renderPanel(ev);updateSliders(ev);updateTags(ev);lastRun=ev;
+ // governing spec readout in section 01
+ const g=ev.gov;
+ $('specRows').innerHTML=[
+  ['MAX w/c',g.wc!=null?'≤ '+g.wc.toFixed(2):'—'],
+  ['MIN STRENGTH',g.strIdx>=0?'≥ '+STR[g.strIdx]:'—'],
+  ['MIN BINDER',g.cem!=null?'≥ '+g.cem+' kg/m³':'—'],
+  ['MIN AIR',g.air!=null?'≥ '+g.air.toFixed(1)+' %':'—'],
+  ['COVER c_nom',g.cover!=null?'≥ '+(g.cover+10)+' mm':'—'],
+  ['GOVERNING',g.classes.length?g.classes.join(' + '):'—']
+ ].map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+}
+let lastRun=null;
+document.addEventListener('input',e=>{
+ if(e.target.id==='inCs')userCsTouched=true;
+ markDirty();
+ const ev=evaluate();renderPanel(ev);updateSliders(ev);updateTags(ev);lastRun=ev;
+ // update spec readout too
+ const g=ev.gov;
+ $('specRows').innerHTML=[
+  ['MAX w/c',g.wc!=null?'≤ '+g.wc.toFixed(2):'—'],
+  ['MIN STRENGTH',g.strIdx>=0?'≥ '+STR[g.strIdx]:'—'],
+  ['MIN BINDER',g.cem!=null?'≥ '+g.cem+' kg/m³':'—'],
+  ['MIN AIR',g.air!=null?'≥ '+g.air.toFixed(1)+' %':'—'],
+  ['COVER c_nom',g.cover!=null?'≥ '+(g.cover+10)+' mm':'—'],
+  ['GOVERNING',g.classes.length?g.classes.join(' + '):'—']
+ ].map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+});
+document.addEventListener('change',e=>{if(e.target.tagName==='SELECT')e.target.dispatchEvent(new Event('input',{bubbles:true}));});
+
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+ const c=b.dataset.c;
+ selected.has(c)?selected.delete(c):selected.add(c);
+ renderChips();syncPreset();syncCs();markDirty();
+ const ev=evaluate();renderPanel(ev);updateSliders(ev);updateTags(ev);
+ const box=$('specBox');box.classList.remove('pulse');void box.offsetWidth;box.classList.add('pulse');
+}));
+
+ $('inPreset').addEventListener('change',()=>{
+ const p=PRESETS.find(p=>p.v===$('inPreset').value);
+ if(p&&p.c){selected.clear();p.c.forEach(c=>selected.add(c));renderChips();syncCs();markDirty();
+  const ev=evaluate();renderPanel(ev);updateSliders(ev);updateTags(ev);
+  const box=$('specBox');box.classList.remove('pulse');void box.offsetWidth;box.classList.add('pulse');}
+});
+
+ $('runBtn').addEventListener('click',()=>{
+ const ev=evaluate();lastRunEv=ev;dirty=false;$('dirtyDot').hidden=true;
+ $('runLbl').textContent='RE-RUN EVALUATION';
+ $('results').hidden=false;$('printBtn').disabled=false;
+ renderResults(ev);
+ $('results').scrollIntoView({behavior:'smooth',block:'start'});
+});
+ $('printBtn').addEventListener('click',()=>window.print());
+
+let rto;window.addEventListener('resize',()=>{clearTimeout(rto);
+ rto=setTimeout(()=>{if(lastRunEv&&!$('results').hidden)drawCharts(lastRunEv);},160);});
+
+/* ---------- init ---------- */
+buildUI();
+renderChips();
+syncCs();
+(function(){ // initial readout
+ const ev=evaluate();renderPanel(ev);updateSliders(ev);updateTags(ev);
+})();
+</script>
+</body>
+</html>
