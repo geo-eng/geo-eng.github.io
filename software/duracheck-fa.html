@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دوراچک — ارزیابی دوام بتن</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+ --paper:#F5F3EE;--panel:#FFFFFF;--panel2:#FDFCFA;--ink:#211E19;--muted:#6E695E;
+ --line:#DFDAD0;--line-soft:#EAE6DD;--ax:#C7C1B2;
+ --acc:#C13A17;--acc-dk:#A32F12;
+ --pass:#2E7A50;--fail:#B3362D;--warn:#9A6A10;
+ --dk:#262219;--dk-line:#3B362A;--dk-mut:#A6A091;
+ --sans:'Vazirmatn',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{font-size:15px;direction:rtl}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+::selection{background:var(--acc);color:#fff}
+.wrap{max-width:1280px;margin:0 auto;padding:0 26px}
+/* ---------- سربرگ ---------- */
+.masthead{background:var(--dk);border-bottom:3px solid var(--acc);position:relative}
+.masthead::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.06;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
+.mast-in{display:flex;justify-content:space-between;align-items:center;gap:26px;padding:24px 0;flex-wrap:wrap}
+.brand{display:flex;gap:14px;align-items:center}
+.mark{width:14px;height:14px;background:var(--acc);flex:none;box-shadow:-16px 0 0 -3px var(--acc)}
+.wordmark{font:700 23px/1 var(--sans);letter-spacing:.17em;color:#F5F3EE;direction:ltr}
+.tagline{font:500 11px var(--sans);color:#98917F;margin-top:7px}
+.docmeta{display:grid;gap:5px 0}
+.docmeta div{display:flex;gap:10px;font:500 10.5px var(--sans)}
+.docmeta span{color:#7E7767;width:70px}
+.docmeta b{color:#EDEBE5;font-weight:500;font-family:var(--sans)}
+.strip{background:#EFEBE3;border-bottom:1px solid var(--line)}
+.strip-in{display:flex;flex-wrap:wrap;gap:8px 24px;padding:9px 0}
+.strip-in span{font:500 10px var(--sans);color:#8A8478}
+.strip-in span:not(:first-child)::before{content:'/';color:var(--acc);margin-right:24px;font-weight:700}
+/* ---------- شبکه ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:24px;align-items:start;padding-top:26px}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:2px;margin-bottom:22px;
+ animation:up .5s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d,0s)}
+.sec.flash{outline:2px solid var(--acc);outline-offset:-2px}
+.sec-h{display:flex;gap:14px;align-items:baseline;padding:16px 20px 13px;border-bottom:1px solid var(--line-soft)}
+.sec-h .n{font:700 13px var(--sans);color:var(--acc)}
+.sec-h h2{font:600 17px/1.35 var(--sans)}
+.sec-h p{font:400 12.5px var(--sans);color:var(--muted);margin-top:3px}
+.sectag{margin-inline-start:auto;font:600 10px var(--sans);color:#8A8478;
+ border:1px solid var(--line);padding:4px 9px;border-radius:2px;white-space:nowrap}
+.sectag.gov{color:var(--acc);border-color:var(--acc)}
+.sec-b{padding:18px 20px}
+/* فیلدها */
+.frow{display:grid;gap:14px;margin-bottom:16px}
+.frow.two{grid-template-columns:1fr 1fr}
+.frow.four{grid-template-columns:repeat(4,1fr)}
+.fld label,.ctl-h label{display:block;font:500 12px var(--sans);color:#57534A;margin-bottom:6px}
+.fld label em,.ctl-h label em{font:400 10px var(--sans);font-style:normal;color:#8A8478;margin-right:4px}
+input[type=text],input[type=number],select{width:100%;border:1px solid var(--line);background:var(--panel2);
+ border-radius:2px;padding:9px 11px;color:var(--ink);font:500 13px var(--sans);transition:border-color .15s}
+input[type=number]{direction:ltr;text-align:right;font-size:13px}
+select{appearance:none;-webkit-appearance:none;padding-left:30px;cursor:pointer;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236E695E' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:left 11px center;background-size:10px}
+input:focus,select:focus{outline:none;border-color:var(--ink)}
+.fnote{font:400 11px var(--sans);color:#8A8478;margin-top:8px;line-height:1.7}
+/* چیپ‌ها */
+.chipzone{border-top:1px dashed var(--line);padding-top:14px;margin-bottom:16px}
+.chiprow{display:flex;align-items:center;gap:14px;padding:4px 0}
+.crlab{flex:none;width:225px;font:500 11px var(--sans);color:#8A8478;line-height:1.6}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 12px var(--sans);letter-spacing:0;padding:7px 11px;border:1px solid #C9C3B6;
+ background:var(--panel2);color:var(--ink);cursor:pointer;border-radius:2px;transition:all .15s}
+.chip:hover:not(.on){border-color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#F5F3EE}
+/* جعبه الزامات حاکم */
+.specbox{margin-top:14px;background:#F3F0E9;border:1px solid var(--line-soft);border-right:3px solid var(--ink);padding:12px 15px}
+@keyframes pulse{0%{background:#F0E4D4}100%{background:#F3F0E9}}
+.specbox.pulse{animation:pulse .6s ease}
+.specbox-t{font:600 10px var(--sans);color:#8A8478;margin-bottom:9px}
+.specrows{display:grid;grid-template-columns:1fr 1fr;gap:5px 20px}
+.specrows>div{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.specrows span{font:400 10.5px var(--sans);color:#8A8478}
+.specrows b{font:600 12px var(--sans);color:var(--ink)}
+.specbox-f{font:400 9.5px var(--sans);color:#9A948A;margin-top:9px;line-height:1.7}
+/* اسلایدرها */
+.ctl{margin-bottom:18px;transition:opacity .25s}
+.ctl.dim{opacity:.45}
+.ctl-h{display:flex;justify-content:space-between;align-items:baseline}
+.ctl-h .val{font:600 13.5px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+.rtag{font:600 9px var(--sans);border:1px solid #C9C3B6;color:#8A8478;padding:2px 6px;border-radius:2px;margin-right:8px;vertical-align:1px}
+.rtag.on{color:var(--acc);border-color:var(--acc)}
+.slider{position:relative;height:30px}
+.rail{position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;background:var(--line)}
+.zone{position:absolute;top:50%;height:9px;margin-top:-4.5px;background:rgba(46,122,80,.13);display:none}
+.fill{position:absolute;right:0;top:50%;height:3px;margin-top:-1.5px;background:var(--ink);width:0;transition:width .08s linear}
+.tick{position:absolute;top:6px;bottom:6px;width:2px;background:#8F897B;display:none}
+.tick span{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font:600 9.5px var(--sans);
+ color:#6E695E;background:var(--panel);padding:0 3px;white-space:nowrap}
+.hint{font:500 10px var(--sans);color:#8A8478;margin-top:4px}
+.hint.viol{color:var(--fail);font-weight:700}
+.ctl.viol .fill{background:var(--fail)}
+.ctl.viol .val{color:var(--fail)}
+input[type=range]{position:absolute;inset:0;width:100%;height:30px;appearance:none;-webkit-appearance:none;
+ background:transparent;margin:0;cursor:ew-resize;direction:rtl}
+input[type=range]::-webkit-slider-runnable-track{height:30px;background:transparent}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:7.5px;
+ background:#fff;border:2px solid var(--ink);border-radius:2px;cursor:ew-resize}
+input[type=range]:focus-visible::-webkit-slider-thumb{outline:2px solid var(--acc);outline-offset:2px}
+input[type=range]::-moz-range-track{height:30px;background:transparent}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;background:#fff;border:2px solid var(--ink);border-radius:2px;cursor:ew-resize}
+.ctl.viol input[type=range]::-webkit-slider-thumb{border-color:var(--fail);background:#F7ECEA}
+.ctl.viol input[type=range]::-moz-range-thumb{border-color:var(--fail);background:#F7ECEA}
+.modelnote{font:400 12px/1.9 var(--sans);color:var(--muted);border-top:1px solid var(--line-soft);padding-top:12px}
+/* ---------- پنل ---------- */
+.colpanel{align-self:start;animation:up .5s .1s cubic-bezier(.2,.7,.3,1) both}
+.panel{position:sticky;top:16px;background:var(--dk);color:#EDEBE5;border-radius:3px;padding:17px 16px 16px}
+.p-title{font:700 12px var(--sans);color:#E06A3C}
+.pbox{margin-top:15px}
+.pbox-t{font:600 10px var(--sans);color:#98917F;border-bottom:1px solid var(--dk-line);padding-bottom:6px;margin-bottom:8px}
+.srow{display:flex;justify-content:space-between;gap:10px;padding:3px 0;align-items:baseline}
+.srow span{font:400 11px var(--sans);color:var(--dk-mut)}
+.srow b{font:600 11.5px var(--sans);color:#F0EEE8}
+.dpi-main{display:flex;align-items:baseline;gap:12px}
+.dpi-n{font:700 38px/1 var(--sans);color:#F0EEE8;font-variant-numeric:tabular-nums}
+.dpi-g{font:700 20px/1 var(--sans);border:2px solid currentColor;width:36px;height:36px;display:inline-flex;
+ align-items:center;justify-content:center;border-radius:2px;direction:ltr}
+.bar{margin-top:12px}
+.ruler{height:5px;background:repeating-linear-gradient(90deg,#4A4436 0,#4A4436 1px,transparent 1px,transparent 10%);margin-bottom:3px}
+.track{height:8px;background:#38332A;position:relative}
+.fillbar{position:absolute;right:0;left:auto;top:0;bottom:0;width:0;transition:width .3s ease}
+.dpi.gA .dpi-n,.dpi.gA .dpi-g{color:#7FC79C}.dpi.gA .fillbar{background:#7FC79C}
+.dpi.gB .dpi-n,.dpi.gB .dpi-g{color:#B9C97E}.dpi.gB .fillbar{background:#B9C97E}
+.dpi.gC .dpi-n,.dpi.gC .dpi-g{color:#D9A94F}.dpi.gC .fillbar{background:#D9A94F}
+.dpi.gD .dpi-n,.dpi.gD .dpi-g{color:#C97B4A}.dpi.gD .fillbar{background:#C97B4A}
+.dpi.gF .dpi-n,.dpi.gF .dpi-g{color:#E58879}.dpi.gF .fillbar{background:#E58879}
+.ck{display:grid;grid-template-columns:16px 1fr auto;gap:9px;align-items:center;padding:5.5px 2px;
+ border-bottom:1px solid #2E2A21;cursor:pointer}
+.ck:hover{background:#2E2A21}
+.ck-ic svg{width:13px;height:13px;display:block}
+.ck-ic.pass{color:#7FC79C}.ck-ic.warn{color:#D9A94F}.ck-ic.fail{color:#E58879}.ck-ic.na{color:#7A7466}
+.ck-nm{font:400 11.5px var(--sans);color:#DCD7CB}
+.ck-vl{font:400 10.5px var(--sans);color:#A6A091;text-align:left;font-variant-numeric:tabular-nums}
+.ck-vl em{font-style:normal;color:#7A7466}
+button{font-family:var(--sans)}
+.run{position:relative;margin-top:17px;width:100%;padding:14px;background:var(--acc);color:#fff;border:none;
+ cursor:pointer;font:700 14px var(--sans);display:flex;align-items:center;justify-content:center;gap:10px;transition:background .15s,transform .05s}
+.run svg{width:15px;height:15px;transform:scaleX(-1)}
+.run:hover{background:var(--acc-dk)}
+.run:active{transform:translateY(1px)}
+.run .dot{position:absolute;left:9px;top:9px;width:7px;height:7px;border-radius:50%;background:#FFD3C2}
+.printb{margin-top:9px;width:100%;padding:11px;background:transparent;border:1px solid #4A4436;color:#C9C3B6;
+ cursor:pointer;font:600 12px var(--sans);display:flex;align-items:center;justify-content:center;gap:9px;transition:all .15s}
+.printb svg{width:13px;height:13px}
+.printb:not(:disabled):hover{border-color:#A6A091;color:#F0EEE8}
+.printb:disabled{opacity:.35;cursor:default}
+.p-foot{font:400 10px var(--sans);color:#7A7466;margin-top:13px;text-align:center}
+/* ---------- نتایج ---------- */
+.results{margin-top:8px;background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--ink);
+ border-radius:2px;animation:up .55s cubic-bezier(.2,.7,.3,1) both}
+.res-h{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding:20px 22px 16px;border-bottom:1px solid var(--line-soft)}
+.res-meta{display:flex;gap:14px;align-items:baseline}
+.res-meta .n{font:700 13px var(--sans);color:var(--acc)}
+.res-meta h2{font:600 20px/1.35 var(--sans)}
+.res-meta p{font:500 11px var(--sans);color:var(--muted);margin-top:6px}
+.stamp{transform:rotate(-5deg);mix-blend-mode:multiply;animation:stampIn .5s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes stampIn{0%{opacity:0;transform:rotate(-5deg) scale(2)}60%{opacity:1;transform:rotate(-4deg) scale(.94)}100%{transform:rotate(-5deg) scale(1)}}
+.stamp-b{border:3px solid currentColor;padding:12px 22px 11px;text-align:center;position:relative;max-width:240px}
+.stamp-b::after{content:'';position:absolute;inset:3px;border:1px solid currentColor}
+.stamp.pass{color:var(--pass)}.stamp.warn{color:var(--warn)}.stamp.fail{color:var(--fail)}.stamp.na{color:#6E695E}
+.stamp .sg{display:block;font:800 52px/1 var(--sans);direction:ltr}
+.stamp .sv{display:block;font:700 13px var(--sans);margin-top:7px;line-height:1.6}
+.stamp .sd{display:block;font:500 10px var(--sans);margin-top:5px;opacity:.75;font-variant-numeric:tabular-nums}
+.verdict{padding:15px 22px;font:400 14px/1.9 var(--sans);border-bottom:1px solid var(--line-soft);color:#4A463D}
+.v-pass b{color:var(--pass)}.v-warn b{color:var(--warn)}.v-fail b{color:var(--fail)}.v-na b{color:var(--muted)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:22px;padding:20px 22px;border-bottom:1px solid var(--line-soft)}
+.fig{border:1px solid var(--line-soft);background:var(--panel2);break-inside:avoid}
+.fig figcaption{font:600 10.5px var(--sans);color:#57534A;padding:9px 12px;border-bottom:1px solid var(--line-soft);line-height:1.6}
+.fig figcaption span{color:var(--acc);margin-left:8px}
+.fig canvas{display:block;width:100%;height:270px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:9px 12px 4px;border-top:1px solid var(--line-soft)}
+.legend .li{font:500 10px var(--sans);color:#6E695E}
+.legend i{display:inline-block;width:15px;height:3px;vertical-align:2px;margin-left:6px}
+.legend i.d{height:0;border-top:2px dashed;background:none!important}
+.cap{padding:4px 12px 10px;font:400 10px var(--sans);color:#8A8478;line-height:1.7}
+.blk{padding:20px 22px;border-bottom:1px solid var(--line-soft)}
+.blk:last-child{border-bottom:none}
+.blk h3{font:700 12px var(--sans);color:#57534A;margin-bottom:13px}
+table.slt{width:100%;border-collapse:collapse}
+table.slt th{font:600 10px var(--sans);color:#8A8478;text-align:right;padding:8px 10px;border-bottom:1px solid var(--line)}
+table.slt td{font:500 12px var(--sans);padding:8px 10px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums}
+table.slt tr.gov td{background:#F3F0E9;font-weight:700}
+table.slt tr.gov td:first-child{border-right:3px solid var(--acc)}
+.ok{color:var(--pass)}.short{color:var(--fail)}
+.r{display:flex;gap:13px;padding:11px 13px;border:1px solid var(--line-soft);border-right:3px solid #B9B3A6;background:var(--panel2);margin-bottom:8px;break-inside:avoid}
+.r.fail{border-right-color:var(--fail)}.r.warn{border-right-color:var(--warn)}
+.r .ric{flex:none;width:17px;height:17px;margin-top:2px}
+.r .ric svg{width:17px;height:17px;display:block}
+.r.fail .ric{color:var(--fail)}.r.warn .ric{color:var(--warn)}.r .ric{color:#8A8478}
+.r h4{font:700 13px var(--sans)}
+.r p{font:400 12.5px/1.9 var(--sans);color:var(--muted);margin-top:3px}
+.record{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line-soft);border:1px solid var(--line-soft)}
+.record>div{background:var(--panel2);padding:8px 11px}
+.record span{display:block;font:400 10px var(--sans);color:#8A8478;margin-bottom:3px}
+.record b{font:500 11.5px var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+/* پاورقی */
+.foot{margin-top:34px;border-top:2px solid var(--ink);padding:24px 0 38px}
+.foot-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.foot h4{font:700 12px var(--sans);margin-bottom:10px}
+.foot ul{list-style:none}
+.foot li{font:400 12px/1.9 var(--sans);color:var(--muted);padding-right:14px;position:relative;margin-bottom:3px}
+.foot li::before{content:'—';position:absolute;right:0;color:var(--acc)}
+.disc{margin-top:20px;border-top:1px solid var(--line);padding-top:13px;font:400 11px/1.9 var(--sans);color:#8A8478}
+@media(max-width:1040px){.grid{grid-template-columns:1fr}.panel{position:static}}
+@media(max-width:860px){.charts{grid-template-columns:1fr}.frow.two{grid-template-columns:1fr 1fr}.record{grid-template-columns:1fr 1fr}
+ .crlab{width:100%}.chiprow{flex-direction:column;align-items:flex-start;gap:7px}.docmeta{display:none}}
+@media(max-width:620px){.res-h{flex-direction:column;gap:14px}.frow.four{grid-template-columns:1fr 1fr}.foot-grid{grid-template-columns:1fr}}
+@media print{
+ @page{size:A4;margin:14mm}
+ body{background:#fff}
+ .strip,.inputs,.colpanel{display:none}
+ .wrap{max-width:none;padding:0}
+ .grid{padding-top:0}
+ .results{border:none;animation:none}
+ .charts,.blk,.res-h{break-inside:avoid}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap mast-in">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <div class="wordmark">DURACHEK</div>
+        <div class="tagline">کاربرگ ارزیابی دوام بتن</div>
+      </div>
+    </div>
+    <div class="docmeta">
+      <div><span>مرجع سند</span><b>CD-2025-041-FA</b></div>
+      <div><span>مبنا</span><b>EN 206 · EN 1992-1-1 · fib BULL. 34</b></div>
+      <div><span>بازنگری</span><b>C-FA — تعاملی</b></div>
+    </div>
+  </div>
+</header>
+<div class="strip"><div class="wrap strip-in">
+  <span>رده‌های مواجهه — جدول ۱ EN 206</span>
+  <span>حداقل پوشش — EC2 §4.4 (S4 · Δc_dev = 10 mm)</span>
+  <span>نفوذ کلراید — فیک II · ضریب پخش عمل‌آمده</span>
+  <span>کربناتاسیون — x = K·√t</span>
+</div></div>
+
+<main class="wrap">
+<div class="grid">
+  <div class="inputs">
+
+    <!-- ۰۱ -->
+    <section class="sec" id="sec01" style="--d:.02s">
+      <header class="sec-h">
+        <span class="n">۰۱</span>
+        <div><h2>پروژه و محیط</h2><p>شرایط بهره‌برداری و رده‌بندی مواجهه</p></div>
+        <span class="sectag gov" id="tagEnv">—</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow">
+          <div class="fld"><label>سازه / عضو</label>
+            <input type="text" id="inName" placeholder="مثال: ایستگاه پمپاژ ساحلی — دیوارهای حائل"></div>
+        </div>
+        <div class="frow two">
+          <div class="fld"><label>مرجع پروژه</label><input type="text" id="inRef" placeholder="PRJ-2025-…"></div>
+          <div class="fld"><label>ارزیاب</label><input type="text" id="inBy" placeholder="نام / نام خانوادگی"></div>
+        </div>
+        <div class="frow two">
+          <div class="fld"><label>عمر خدماتی طرح <em>سال</em></label><input type="number" id="inLife" value="50" min="10" max="150" step="1"></div>
+          <div class="fld"><label>محیط خدمت (پیش‌تنظیم)</label><select id="inPreset"></select></div>
+        </div>
+        <div class="chipzone" id="chipRows"></div>
+        <div class="specbox" id="specBox">
+          <div class="specbox-t">الزامات حاکم — رده‌های انتخاب‌شده</div>
+          <div class="specrows" id="specRows"></div>
+          <div class="specbox-f">مبنا: جدول E.1N استاندارد EN 206 · جدول 4.4N یوروکد ۲ (رده سازه‌ای S4، Δc_dev = ۱۰ میلی‌متر)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۰۲ -->
+    <section class="sec" id="sec02" style="--d:.07s">
+      <header class="sec-h">
+        <span class="n">۰۲</span>
+        <div><h2>طرح اختلاط</h2><p>مصالح و نسبت‌های اختلاط</p></div>
+        <span class="sectag">مخلوط</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow two">
+          <div class="fld"><label>نوع سیمان / مصالح سیمانی</label><select id="inCement"></select></div>
+          <div class="fld"><label>رده مقاومت</label><select id="inStr"></select></div>
+        </div>
+        <div class="fnote" id="cemNote" style="margin-top:-8px;margin-bottom:14px"></div>
+        <div class="ctl" id="rowWc">
+          <div class="ctl-h"><label for="inWc">نسبت آب به سیمان <em>w/c</em></label><output class="val" id="outWc" for="inWc">۰٫۵۰</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneWc"></div><div class="fill" id="fillWc"></div>
+            <div class="tick" id="tickWc"><span id="tickLblWc"></span></div>
+            <input type="range" id="inWc" min="0.30" max="0.75" step="0.01" value="0.50">
+          </div>
+          <div class="hint" id="hintWc"></div>
+        </div>
+        <div class="ctl" id="rowBinder" style="margin-bottom:4px">
+          <div class="ctl-h"><label for="inBinder">مقدار مواد سیمانی <em>kg/m³</em></label><output class="val" id="outBinder" for="inBinder">۳۱۰</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneBinder"></div><div class="fill" id="fillBinder"></div>
+            <div class="tick" id="tickBinder"><span id="tickLblBinder"></span></div>
+            <input type="range" id="inBinder" min="240" max="460" step="5" value="310">
+          </div>
+          <div class="hint" id="hintBinder"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۰۳ -->
+    <section class="sec" id="sec03" style="--d:.12s">
+      <header class="sec-h">
+        <span class="n">۰۳</span>
+        <div><h2>پوشش میلگرد</h2><p>محافظت میلگرد مدفون</p></div>
+        <span class="sectag">پوشش</span>
+      </header>
+      <div class="sec-b">
+        <div class="ctl" id="rowCover" style="margin-bottom:4px">
+          <div class="ctl-h"><label for="inCover">پوشش اسمی <em>c_nom · mm</em></label><output class="val" id="outCover" for="inCover">۴۵</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneCover"></div><div class="fill" id="fillCover"></div>
+            <div class="tick" id="tickCover"><span id="tickLblCover"></span></div>
+            <input type="range" id="inCover" min="10" max="70" step="1" value="45">
+          </div>
+          <div class="hint" id="hintCover"></div>
+          <div class="fnote">c_nom = c_min,dur + Δc_dev · Δc_dev = ۱۰ میلی‌متر فرض شده (EC2 §4.4.1.3، رده اجرای ۲)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۰۴ -->
+    <section class="sec" id="sec04" style="--d:.17s">
+      <header class="sec-h">
+        <span class="n">۰۴</span>
+        <div><h2>مشخصات انتقالی</h2><p>شاخص‌های عملکردی (اختلاط آزمایشی / آزمون)</p></div>
+        <span class="sectag">عملکرد</span>
+      </header>
+      <div class="sec-b">
+        <div class="ctl" id="rowDrcm">
+          <div class="ctl-h"><label for="inDrcm">ضریب پخش کلراید D_RCM <em>×10⁻¹² m²/s · NT Build 492</em><span class="rtag" id="tagDrcm"></span></label><output class="val" id="outDrcm" for="inDrcm">۱۰٫۰</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneDrcm"></div><div class="fill" id="fillDrcm"></div>
+            <div class="tick" id="tickDrcm"><span id="tickLblDrcm"></span></div>
+            <input type="range" id="inDrcm" min="1" max="30" step="0.5" value="10">
+          </div>
+          <div class="hint" id="hintDrcm"></div>
+        </div>
+        <div class="ctl" id="rowK">
+          <div class="ctl-h"><label for="inK">ضریب کربناتاسیون K <em>mm/√yr</em><span class="rtag" id="tagK"></span></label><output class="val" id="outK" for="inK">۳٫۸</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneK"></div><div class="fill" id="fillK"></div>
+            <div class="tick" id="tickK"><span id="tickLblK"></span></div>
+            <input type="range" id="inK" min="0.5" max="12" step="0.1" value="3.8">
+          </div>
+          <div class="hint" id="hintK"></div>
+        </div>
+        <div class="ctl" id="rowAir">
+          <div class="ctl-h"><label for="inAir">محتوای هوای کل <em>%</em><span class="rtag" id="tagAir"></span></label><output class="val" id="outAir" for="inAir">۱٫۵</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneAir"></div><div class="fill" id="fillAir"></div>
+            <div class="tick" id="tickAir"><span id="tickLblAir"></span></div>
+            <input type="range" id="inAir" min="0" max="8" step="0.1" value="1.5">
+          </div>
+          <div class="hint" id="hintAir"></div>
+        </div>
+        <div class="ctl" id="rowSpacing" style="margin-bottom:4px">
+          <div class="ctl-h"><label for="inSpacing">ضریب فاصله‌گذاری حفرات هوا <em>μm · ASTM C457</em><span class="rtag" id="tagSpacing"></span></label><output class="val" id="outSpacing" for="inSpacing">۳۱۰</output></div>
+          <div class="slider">
+            <div class="rail"></div><div class="zone" id="zoneSpacing"></div><div class="fill" id="fillSpacing"></div>
+            <div class="tick" id="tickSpacing"><span id="tickLblSpacing"></span></div>
+            <input type="range" id="inSpacing" min="50" max="600" step="5" value="310">
+          </div>
+          <div class="hint" id="hintSpacing"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۰۵ -->
+    <section class="sec" id="sec05" style="--d:.22s">
+      <header class="sec-h">
+        <span class="n">۰۵</span>
+        <div><h2>محیط شیمیایی و سنگدانه‌ها</h2><p>غربالگری حمله سولفاتی و واکنش قلیایی–سیلیسی</p></div>
+        <span class="sectag">شیمی / ASR</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow two" style="margin-bottom:0">
+          <div class="fld"><label>SO₄²⁻ — آب زیرزمینی <em>mg/l</em></label><input type="number" id="inSo4w" value="120" min="0" step="10"></div>
+          <div class="fld"><label>SO₄²⁻ — خاک <em>mg/kg</em></label><input type="number" id="inSo4s" value="0" min="0" step="50"></div>
+        </div>
+        <div class="fnote" id="chemNote"></div>
+        <div class="frow" style="margin-top:14px">
+          <div class="fld"><label>واکنش‌پذیری قلیایی–سیلیسی سنگدانه</label><select id="inReactivity"></select></div>
+        </div>
+        <div class="frow two">
+          <div class="fld"><label>قلیایی سیمان <em>% Na₂Oeq</em></label><input type="number" id="inAlkali" value="0.75" min="0.3" max="1.2" step="0.05"></div>
+          <div class="fld"><label>اقدام کاهشی ASR</label><select id="inMit"></select></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۰۶ -->
+    <section class="sec" id="sec06" style="--d:.27s">
+      <header class="sec-h">
+        <span class="n">۰۶</span>
+        <div><h2>مدل عمر خدماتی</h2><p>پارامترهای پیش‌بینی محدود به مرحله آغاز</p></div>
+        <span class="sectag">SLD</span>
+      </header>
+      <div class="sec-b">
+        <div class="frow four" style="margin-bottom:14px">
+          <div class="fld"><label>کلراید سطح C_s <em>% وزن سیمان</em></label><input type="number" id="inCs" value="2.0" min="0.2" max="8" step="0.1"></div>
+          <div class="fld"><label>مقدار اولیه C₀ <em>%</em></label><input type="number" id="inC0" value="0.10" min="0" max="1" step="0.05"></div>
+          <div class="fld"><label>آستانه بحرانی C_crit <em>%</em></label><input type="number" id="inCcrit" value="0.40" min="0.1" max="1.5" step="0.05"></div>
+          <div class="fld"><label>دوره گسترش t_prop <em>سال</em></label><input type="number" id="inTprop" value="10" min="0" max="30" step="1"></div>
+        </div>
+        <p class="modelnote">نفوذ کلراید از قانون دوم فیک با ضریب پخش ظاهری وابسته به زمان پیروی می‌کند:
+        <bdi><b>C(x,t) = C_s − (C_s − C₀)·erf( x / 2√(D·t) )</b></bdi>، که در آن <bdi><b>D(t) = D_RCM·(t₀/t)^α</b></bdi>
+        است (t₀ = ۲۸ روز، α تابع نوع مصالح سیمانی). جبهه کربناتاسیون نیز به‌صورت <bdi><b>x_c = K·√t</b></bdi> پیش می‌رود.
+        عمر خدماتی = زمان رسیدن به مرحله غیرفعال‌شدگی در عمق میلگرد (C(c,t) ≥ C_crit یا x_c ≥ c) به‌علاوه دوره گسترش.
+        مقدار C_s از رده کلریدی انتخاب‌شده به‌طور خودکار تعیین می‌شود و با داده‌های پروژه قابل جایگزینی است.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ پنل زنده ============ -->
+  <aside class="colpanel">
+    <div class="panel">
+      <div class="p-title">نمایش زنده</div>
+      <div class="pbox">
+        <div class="pbox-t">مشخصات حاکم</div>
+        <div class="srow"><span>رده حاکم</span><b id="pGov">—</b></div>
+        <div class="srow"><span>حداکثر w/c</span><b id="pWc">—</b></div>
+        <div class="srow"><span>حداقل رده مقاومت</span><b id="pStr">—</b></div>
+        <div class="srow"><span>حداقل مواد سیمانی</span><b id="pCem">—</b></div>
+        <div class="srow"><span>حداقل هوای کل</span><b id="pAir">—</b></div>
+        <div class="srow"><span>پوشش اسمی c_nom</span><b id="pCover">—</b></div>
+      </div>
+      <div class="pbox dpi" id="dpiBox">
+        <div class="pbox-t">شاخص عملکرد دوام (DPI)</div>
+        <div class="dpi-main"><span class="dpi-n" id="dpiVal">—</span><span class="dpi-g" id="dpiGrade">–</span></div>
+        <div class="bar"><div class="ruler"></div><div class="track"><div class="fillbar" id="dpiFill"></div></div></div>
+      </div>
+      <div class="pbox">
+        <div class="pbox-t">بررسی‌های انطباق</div>
+        <div id="checkList"></div>
+      </div>
+      <button type="button" class="run" id="runBtn">
+        <span id="runLbl">اجرای ارزیابی</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <i class="dot" id="dirtyDot" hidden></i>
+      </button>
+      <button type="button" class="printb" id="printBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        گزارش چاپی / PDF
+      </button>
+      <div class="p-foot">نمایش با تغییر ورودی‌ها به‌صورت زنده به‌روز می‌شود</div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============ نتایج ============ -->
+<section id="results" class="results" hidden>
+  <header class="res-h">
+    <div class="res-meta">
+      <span class="n">۰۷</span>
+      <div><h2>گزارش ارزیابی</h2><p id="resSub"></p></div>
+    </div>
+    <div class="stamp-slot" id="stampSlot"></div>
+  </header>
+  <p class="verdict" id="verdictLine"></p>
+  <div class="charts">
+    <figure class="fig">
+      <figcaption><span>شکل ۱</span>عمق جبهه تخریب — مکانیسم‌های حاکم</figcaption>
+      <canvas id="chart1"></canvas>
+      <div class="legend" id="leg1"></div>
+      <p class="cap" id="cap1"></p>
+    </figure>
+    <figure class="fig">
+      <figcaption><span>شکل ۲</span><span id="fig2t"></span></figcaption>
+      <canvas id="chart2"></canvas>
+      <div class="legend" id="leg2"></div>
+      <p class="cap" id="cap2"></p>
+    </figure>
+  </div>
+  <div class="blk">
+    <h3>پیش‌بینی عمر خدماتی</h3>
+    <div id="slTable"></div>
+  </div>
+  <div class="blk">
+    <h3>توصیه‌ها</h3>
+    <div id="recList"></div>
+  </div>
+  <div class="blk">
+    <h3>سجل داده‌های ورودی</h3>
+    <div class="record" id="recordGrid"></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <h4>فرضیات</h4>
+        <ul>
+          <li>رده سازه‌ای S4، مبنای عمر طرح ۵۰ ساله، Δc_dev = ۱۰ میلی‌متر (EC2 §4.4.1.3).</li>
+          <li>D_app(t) = D_RCM·(t₀/t)^α با t₀ = ۲۸ روز؛ ضرایب تبدیل آزمایشگاه به سازه برابر ۱٫۰ گرفته شده است.</li>
+          <li>غیرفعال‌شدگی هنگام C(c,t) ≥ C_crit = ۰٫۴٪ وزن سیمان (کلراید) یا x_c ≥ c (کربناتاسیون)؛ دوره گسترش به انتخاب کاربر.</li>
+          <li>اجرا مطابق EN 13670 فرض شده: متراکم‌سازی کامل و عمل‌آوری مرطوب حداقل ۷ روزه.</li>
+        </ul>
+      </div>
+      <div>
+        <h4>مراجع</h4>
+        <ul>
+          <li>EN 206:2013+A2 — مشخصات، عملکرد، تولید و انطباق بتن (جدول‌های ۱، ۲ و E.1N).</li>
+          <li>EN 1992-1-1 — یوروکد ۲، طراحی سازه‌های بتنی؛ دوام و پوشش (§4.4، جدول 4.4N).</li>
+          <li>fib Bulletin 34 — مدل‌کد طراحی عمر خدماتی؛ NT Build 492 (آزمون RCM)؛ ASTM C457 (سیستم حفرات هوا).</li>
+          <li>RILEM AAR-7.1 — غربالگری و پیشگیری از واکنش قلیایی–سیلیسی.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="disc">دوراچک یک ابزار طراحی کمکی برای ارزیابی اولیه دوام است و جایگزین آزمون‌های اختصاصی پروژه، مقادیر ضمیمه ملی یا قضاوت مهندس مواد خبره نمی‌شود.</p>
+  </div>
+</footer>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+/* ارقام فارسی + ممیز فارسی */
+const FAD='۰۱۲۳۴۵۶۷۸۹';
+const fa=v=>String(v).replace(/\d/g,d=>FAD[d]).replace(/\./g,'٫');
+const faDate=()=>new Intl.DateTimeFormat('fa-IR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+
+/* ---------- داده‌های مرجع ---------- */
+const STR=['C20/25','C25/30','C30/37','C35/45','C40/50','C45/55','C50/60'];
+const EXPO={
+ XC1:{wc:.65,cem:260,str:0,cover:15,air:null},XC2:{wc:.60,cem:280,str:1,cover:25,air:null},
+ XC3:{wc:.55,cem:280,str:2,cover:30,air:null},XC4:{wc:.50,cem:300,str:2,cover:35,air:null},
+ XD1:{wc:.50,cem:300,str:2,cover:35,air:null},XD2:{wc:.45,cem:320,str:3,cover:40,air:null},XD3:{wc:.45,cem:320,str:3,cover:45,air:null},
+ XS1:{wc:.50,cem:300,str:2,cover:35,air:null},XS2:{wc:.45,cem:320,str:3,cover:40,air:null},XS3:{wc:.45,cem:320,str:3,cover:45,air:null},
+ XF1:{wc:.55,cem:280,str:2,cover:null,air:null},XF2:{wc:.55,cem:300,str:1,cover:null,air:4.0},
+ XF3:{wc:.50,cem:300,str:2,cover:null,air:4.0},XF4:{wc:.45,cem:320,str:2,cover:null,air:4.0},
+ XA1:{wc:.55,cem:280,str:2,cover:null,air:null},XA2:{wc:.50,cem:320,str:2,cover:null,air:null},XA3:{wc:.45,cem:320,str:3,cover:null,air:null}
+};
+const EXPO_DESC={
+ XC1:'خشک یا دائماً مرطوب',XC2:'مرطوب، به‌ندرت خشک',XC3:'رطوبت متوسط',XC4:'متناوباً مرطوب و خشک',
+ XD1:'کلراید — هوابرد / رطوبت متوسط',XD2:'کلراید — مرطوب، به‌ندرت خشک',XD3:'کلراید — ناحیه پاشش',
+ XS1:'دریایی — نمک هوابرد',XS2:'دریایی — غوطه‌وری دائم',XS3:'دریایی — پاشش و جزر و مد',
+ XF1:'یخ‌زدگی — اشباع متوسط، بدون نمک',XF2:'یخ‌زدگی — اشباع متوسط با نمک',
+ XF3:'یخ‌زدگی — اشباع بالا، بدون نمک',XF4:'یخ‌زدگی — اشباع بالا با نمک',
+ XA1:'خاک با تهاجم ملایم',XA2:'تهاجم متوسط',XA3:'تهاجم شدید'
+};
+const CEMENTS={
+ 'CEM I 42.5':{alpha:0.30,sr:false,note:'سیمان پرتلند معمولی'},
+ 'CEM I/SR 42.5':{alpha:0.30,sr:true,note:'سیمان پرتلند مقاوم سولفاتی'},
+ 'CEM II/A-V':{alpha:0.45,sr:false,note:'پرتلند + ۶ تا ۲۰٪ خاکستر بادی'},
+ 'CEM II/B-V':{alpha:0.55,sr:false,note:'پرتلند + ۲۱ تا ۳۵٪ خاکستر بادی'},
+ 'CEM III/A':{alpha:0.60,sr:false,note:'پرتلند + ۳۶ تا ۶۵٪ سرباره کوره'},
+ 'CEM III/B':{alpha:0.70,sr:true,note:'پرتلند + ۶۶ تا ۸۰٪ سرباره — مقاومت سولفاتی بالا'},
+ 'CEM I + SF':{alpha:0.50,sr:false,note:'پرتلند + ۸ تا ۱۰٪ میکروسیلیس'}
+};
+const PRESETS=[
+ {v:'custom',t:'سفارشی (انتخاب دستی رده‌ها)',c:null},
+ {v:'indoor',t:'داخلی — خشک / گرمایش دائمی',c:['XC1']},
+ {v:'indoor-wet',t:'داخلی — رطوبت بالا و تقطیر',c:['XC3']},
+ {v:'sheltered',t:'فضای باز — پناه‌دار از باران',c:['XC3']},
+ {v:'rain',t:'فضای باز — در معرض باران',c:['XC4']},
+ {v:'frost',t:'اقلیم سرد — یخ‌زدگی آب شیرین',c:['XF3','XC4']},
+ {v:'salt',t:'اقلیم سرد — نمک یخ‌زدایی، سطوح افقی',c:['XD1','XF4','XC4']},
+ {v:'bridge',t:'دهانه پل — پاشش کلریدی',c:['XD1','XC4']},
+ {v:'marine-air',t:'ساحلی — نمک هوابرد',c:['XS1','XC4']},
+ {v:'marine-splash',t:'دریایی — ناحیه پاشش و جزر و مد',c:['XS3','XC4']},
+ {v:'marine-sub',t:'دریایی — غوطه‌وری دائم',c:['XS2','XC2']},
+ {v:'buried',t:'مدفون — خاک و آب زیرزمینی غیرمهاجم',c:['XC2']},
+ {v:'sulfate',t:'مدفون — آب زیرزمینی غنی از سولفات',c:['XC2','XA2']}
+];
+const FAMS=[
+ {key:'XC',title:'XC — خوردگی ناشی از کربناتاسیون',classes:['XC1','XC2','XC3','XC4']},
+ {key:'XD',title:'XD — کلراید، نمک‌های یخ‌زدایی',classes:['XD1','XD2','XD3']},
+ {key:'XS',title:'XS — کلراید، آب دریا',classes:['XS1','XS2','XS3']},
+ {key:'XF',title:'XF — حمله یخ‌زدگی–ذوب',classes:['XF1','XF2','XF3','XF4']},
+ {key:'XA',title:'XA — حمله شیمیایی',classes:['XA1','XA2','XA3']}
+];
+const CS_MAP={XD1:1.5,XD2:3.0,XD3:4.0,XS1:2.5,XS2:3.5,XS3:5.0};
+const REACT={nr:'غیرواکنش‌پذیر — ارزیابی‌شده',pr:'بالقوه واکنش‌پذیر — رسی/سیلیسی',na:'ارزیابی نشده'};
+const MITS={none:'هیچ‌کدام',la:'سیمان کم‌قلیایی (≤ ۰٫۶۰٪ Na₂Oeq)',scm:'مصالح سیمانی جانشین ≥ ۲۵٪ (خاکستر/سرباره)',agg:'سنگدانه غیرواکنش‌پذیر تأیید‌شده'};
+
+/* ---------- آیکون‌ها ---------- */
+const SV=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC={
+ check:SV('<path d="M20 6 9 17l-5-5"/>'),
+ x:SV('<path d="M18 6 6 18M6 6l12 12"/>'),
+ warn:SV('<path d="M10.3 3.8 1.8 18.2A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-3.8L13.7 3.8a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
+ info:SV('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'),
+ na:SV('<path d="M5 12h14"/>')
+};
+
+/* ---------- ریاضیات: erf ---------- */
+function erf(x){const s=Math.sign(x);x=Math.abs(x);const t=1/(1+0.3275911*x);
+ const y=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+ return s*y;}
+function erfInv(y){let lo=-1,hi=1;for(let i=0;i<70;i++){const m=(lo+hi)/2;if(erf(m)<y)lo=m;else hi=m;}return (lo+hi)/2;}
+
+/* ---------- وضعیت ---------- */
+const selected=new Set(['XC4']);
+let userCsTouched=false,dirty=false,lastRunEv=null;
+const fmtY=v=>!isFinite(v)?'—':(v>=100?fa(Math.round(v)):fa(v.toFixed(1)))+' سال';
+
+function readState(){
+ const num=(id,d)=>{const v=parseFloat($(id).value);return isFinite(v)?v:d;};
+ return{
+  name:$('inName').value.trim(),ref:$('inRef').value.trim(),by:$('inBy').value.trim(),
+  life:clamp(num('inLife',50),10,150),
+  classes:[...selected],
+  cement:$('inCement').value,
+  wc:num('inWc',.5),binder:num('inBinder',310),strIdx:$('inStr').selectedIndex,
+  cover:num('inCover',45),drcm:num('inDrcm',10),k:num('inK',3.8),
+  air:num('inAir',1.5),spacing:num('inSpacing',310),
+  so4w:num('inSo4w',0),so4s:num('inSo4s',0),
+  reactivity:$('inReactivity').value,alkali:num('inAlkali',.75),mitigation:$('inMit').value,
+  cs:num('inCs',2),c0:num('inC0',.1),ccrit:num('inCcrit',.4),tprop:num('inTprop',10)
+ };
+}
+function governing(classes){
+ const sel=classes.map(c=>EXPO[c]).filter(Boolean);
+ const g={classes:[...classes],wc:null,cem:null,strIdx:-1,cover:null,air:null};
+ sel.forEach(s=>{
+  if(s.wc!=null)g.wc=g.wc==null?s.wc:Math.min(g.wc,s.wc);
+  if(s.cem!=null)g.cem=g.cem==null?s.cem:Math.max(g.cem,s.cem);
+  if(s.str!=null)g.strIdx=Math.max(g.strIdx,s.str);
+  if(s.cover!=null)g.cover=g.cover==null?s.cover:Math.max(g.cover,s.cover);
+  if(s.air!=null)g.air=g.air==null?s.air:Math.max(g.air,s.air);
+ });
+ g.hasXC=classes.some(c=>c.startsWith('XC'));
+ g.hasXD=classes.some(c=>c.startsWith('XD')||c.startsWith('XS'));
+ g.hasXF=classes.some(c=>c.startsWith('XF'));
+ g.hasXA=classes.some(c=>c.startsWith('XA'));
+ return g;
+}
+function chemClassify(st){
+ let sel=0;st.classes.forEach(c=>{if(c.startsWith('XA'))sel=Math.max(sel,+c[2]);});
+ let der=0,src='';
+ const w=st.so4w,s=st.so4s;
+ if(w>=3000){der=3;src='آب زیرزمینی '+fa(w)+' mg/l';}else if(w>=600){der=Math.max(der,2);src='آب زیرزمینی '+fa(w)+' mg/l';}
+ else if(w>=200){der=Math.max(der,1);src='آب زیرزمینی '+fa(w)+' mg/l';}
+ if(s>=12000){der=Math.max(der,3);src='خاک '+fa(s)+' mg/kg';}else if(s>=3000){der=Math.max(der,2);src='خاک '+fa(s)+' mg/kg';}
+ else if(s>=2000){der=Math.max(der,1);src='خاک '+fa(s)+' mg/kg';}
+ if(w>=6000)src+=' (فراتر از XA3 — نیازمند اقدام ویژه)';
+ return{selected:sel,derived:der,level:Math.max(sel,der),src};
+}
+
+/* ---------- مدل عمر ---------- */
+function scanT(z,d,cover,alpha){
+ const t0=.0767,D=t=>d*31.557*Math.pow(t0/Math.max(t,t0),alpha);
+ let pT=.05,pX=2*z*Math.sqrt(D(.05)*.05);
+ if(pX>=cover)return .05;
+ for(let i=1;i<=800;i++){const t=.05*Math.pow(6000,i/800),x=2*z*Math.sqrt(D(t)*t);
+  if(x>=cover)return pT+(t-pT)*(cover-pX)/(x-pX);pT=t;pX=x;}
+ return Infinity;
+}
+function invertD(st,alpha){
+ const t=d=>{const r=(st.cs-st.ccrit)/(st.cs-st.c0);
+  if(r<=0)return 0;if(r>=1)return Infinity;return scanT(erfInv(r),d,st.cover,alpha);};
+ if(t(1)<st.life)return null;if(t(30)>=st.life)return 30;
+ let lo=1,hi=30;for(let i=0;i<26;i++){const m=(lo+hi)/2;if(t(m)>=st.life)lo=m;else hi=m;}
+ return lo;
+}
+function runModel(st,gov){
+ const alpha=CEMENTS[st.cement].alpha,t0=.0767;
+ const m={alpha};
+ m.xcActive=gov.hasXC;m.chlActive=gov.hasXD;
+ m.tCarbInit=st.k>0?(st.cover/st.k)**2:Infinity;
+ m.carbFront=st.k*Math.sqrt(st.life);
+ m.kReq=st.cover/Math.sqrt(st.life);
+ m.z=null;m.tChlInit=Infinity;
+ if(st.cs>st.c0){
+  const r=(st.cs-st.ccrit)/(st.cs-st.c0);
+  if(r<=0)m.tChlInit=0;
+  else if(r<1){m.z=erfInv(r);m.tChlInit=scanT(m.z,st.drcm,st.cover,alpha);}
+ }
+ m.DL=st.drcm*31.557*Math.pow(t0/Math.max(st.life,t0),alpha);
+ m.chlFront=(m.z&&isFinite(m.tChlInit))?2*m.z*Math.sqrt(m.DL*st.life):Infinity;
+ m.slCarb=m.xcActive?m.tCarbInit+st.tprop:null;
+ m.slChl=m.chlActive?m.tChlInit+st.tprop:null;
+ const parts=[];
+ if(m.slCarb!=null)parts.push(['خوردگی ناشی از کربناتاسیون',m.slCarb]);
+ if(m.slChl!=null)parts.push(['خوردگی ناشی از کلراید',m.slChl]);
+ if(parts.length){parts.sort((a,b)=>a[1]-b[1]);m.sl=parts[0][1];m.govLabel=parts[0][0];m.ratio=m.sl/st.life;}
+ else{m.sl=null;m.ratio=null;m.govLabel=null;}
+ m.dReq=m.chlActive?invertD(st,alpha):null;
+ return m;
+}
+
+/* ---------- امتیازدهی ---------- */
+function scoreAll(st,gov,chem,m){
+ const C=[];const add=(key,label,score,weight,status)=>C.push({key,label,score:Math.round(clamp(score,5,100)),weight,status});
+ if(gov.wc!=null){
+  const mg=gov.wc-st.wc;
+  if(mg>=0)add('wc','نسبت آب به سیمان',65+mg*500,1.0,mg<=.004?'warn':'pass');
+  else add('wc','نسبت آب به سیمان',70+mg*500,1.0,'fail');
+ }else add('wc','نسبت آب به سیمان',st.wc<=.45?95:st.wc<=.5?88:st.wc<=.55?78:st.wc<=.6?66:55,.8,'na');
+ if(gov.strIdx>=0){const d=st.strIdx-gov.strIdx;
+  add('str','رده مقاومت',d>=0?84+d*5:40,.7,d>=0?'pass':'fail');
+ }else add('str','رده مقاومت',85,.6,'na');
+ if(gov.cem!=null){const d=st.binder-gov.cem;
+  if(d>=0)add('binder','مقدار مواد سیمانی',78+d*.8,.7,d<=10?'warn':'pass');
+  else add('binder','مقدار مواد سیمانی',80+d*.9,.7,'fail');
+ }else add('binder','مقدار مواد سیمانی',82,.6,'na');
+ if(gov.cover!=null){const req=gov.cover+10,d=st.cover-req;
+  if(d>=0)add('cover','پوشش اسمی',70+d*1.5,1.0,d<=5?'warn':'pass');
+  else add('cover','پوشش اسمی',75+d*3.5,1.0,'fail');
+ }else add('cover','پوشش اسمی',80,.25,'na');
+ if(gov.hasXD){
+  const d=st.drcm;
+  const s=d<=5?100:d<=8?90:d<=10?78:d<=12?66:d<=15?50:d<=20?38:26;
+  add('drcm','ضریب پخش کلراید',s,1.25,d<=10?'pass':d<=12?'warn':'fail');
+ }
+ if(gov.hasXC){
+  const r=(m.tCarbInit+st.tprop)/st.life;
+  const s=r>=1.5?100:r>=1.2?93:r>=1?84:r>=.8?62:r>=.6?45:r>=.4?28:15;
+  add('carb','مقاومت کربناتاسیونی',s,1.2,r>=1.15?'pass':r>=1?'warn':'fail');
+ }
+ if(gov.hasXF){
+  let airS=null;
+  if(gov.air!=null){const d=st.air-gov.air;airS=d>=1?95:d>=.4?88:d>=0?70:d>=-.5?45:25;}
+  const spS=st.spacing<=200?100:st.spacing<=230?92:st.spacing<=250?80:st.spacing<=300?55:st.spacing<=350?35:20;
+  let stt='pass';
+  if((gov.air!=null&&st.air<gov.air-.3)||st.spacing>350)stt='fail';
+  else if((gov.air!=null&&st.air<gov.air)||st.spacing>250)stt='warn';
+  add('frost','مقاومت یخ‌زدگی–ذوب',Math.min(airS==null?spS:airS,spS),1.15,stt);
+ }
+ {const sr=CEMENTS[st.cement].sr,lvl=chem.level;
+  let s,stt='pass';
+  if(lvl===0)s=sr?96:93;
+  else if(lvl===1){s=sr?86:70;if(!sr)stt='warn';}
+  else if(lvl===2){s=sr?(st.wc<=.45?88:78):32;stt=sr?'pass':'fail';}
+  else{s=sr&&st.wc<=.45?88:22;stt=sr?'pass':'fail';}
+  add('chem','مقاومت شیمیایی',s,lvl>=1?1.0:.3,stt);}
+ {const eff=st.mitigation==='la'?.55:st.alkali;
+  let s,stt='pass';
+  if(st.reactivity==='nr')s=95;
+  else if(st.reactivity==='na'){s=62;stt='warn';}
+  else{
+   if(st.mitigation==='scm')s=86;else if(st.mitigation==='agg')s=92;
+   else if(eff<=.60){s=60;stt='warn';}else{s=18;stt='fail';}
+  }
+  add('asr','احتیاط ASR',s,.55,stt);}
+ if(m.sl!=null){const r=m.ratio;
+  const s=r>=1.3?100:r>=1.1?92:r>=1?82:r>=.85?60:r>=.7?45:25;
+  add('sl','عمر خدماتی',s,1.3,r>=1.05?'pass':r>=1?'warn':'fail');}
+ const wsum=C.reduce((a,c)=>a+c.weight,0);
+ const dpi=wsum>0?C.reduce((a,c)=>a+c.score*c.weight,0)/wsum:null;
+ return{criteria:C,dpi};
+}
+const gradeOf=d=>d>=92?'A':d>=84?'B':d>=74?'C':d>=62?'D':'F';
+
+/* ---------- چک‌لیست انطباق ---------- */
+function buildChecks(st,gov,chem,m,score){
+ const S=Object.fromEntries(score.criteria.map(c=>[c.key,c]));
+ const stOf=k=>S[k]?S[k].status:'na';
+ const rows=[
+  {k:'wc',l:'حداکثر w/c — EN 206',v:fa(st.wc.toFixed(2)),r:gov.wc!=null?'≤ '+fa(gov.wc.toFixed(2)):'—',sec:'sec02'},
+  {k:'str',l:'حداقل رده مقاومت',v:STR[st.strIdx],r:gov.strIdx>=0?'≥ '+STR[gov.strIdx]:'—',sec:'sec02'},
+  {k:'binder',l:'حداقل مواد سیمانی',v:fa(st.binder)+' kg/m³',r:gov.cem!=null?'≥ '+fa(gov.cem):'—',sec:'sec02'},
+  {k:'cover',l:'پوشش اسمی',v:fa(st.cover)+' mm',r:gov.cover!=null?'≥ '+fa(gov.cover+10)+' mm':'—',sec:'sec03'},
+  {k:'frost',l:'هوای کل (XF)',v:gov.hasXF&&gov.air!=null?fa(st.air.toFixed(1))+'٪':'—',r:gov.air!=null?'≥ '+fa(gov.air.toFixed(1))+'٪':'موردی نیست',sec:'sec04'},
+  {k:'frost',l:'ضریب فاصله‌گذاری (XF)',v:(gov.hasXF&&st.air>=3)?fa(st.spacing)+' μm':'—',r:gov.hasXF?'≤ 250 μm':'موردی نیست',sec:'sec04'},
+  {k:'chem',l:'مقاومت سولفاتی',v:chem.level?'XA'+chem.level+(CEMENTS[st.cement].sr?' · مقاوم':' · غیرمقاوم'):fa(st.so4w)+' mg/l',
+   r:chem.level>=2?'سیمان SR':chem.level===1?'SR توصیه می‌شود':'≤ 200 mg/l',sec:'sec05'},
+  {k:'asr',l:'احتیاط ASR',v:REACT[st.reactivity].split(' —')[0]+' · '+fa(st.alkali.toFixed(2))+'٪',r:st.reactivity==='pr'?'اقدام کاهشی':'غربالگری سنگدانه',sec:'sec05'},
+  {k:'drcm',l:'مقاومت کلریدی',v:gov.hasXD?fa(st.drcm.toFixed(1)):'—',r:gov.hasXD?'≤ 10':'غیر حاکم',sec:'sec04'},
+  {k:'carb',l:'زمان آغاز کربناتاسیون',v:gov.hasXC?fmtY(m.tCarbInit):'—',r:gov.hasXC?'≥ '+fa(st.life)+' سال':'غیر حاکم',sec:'sec04'},
+  {k:'sl',l:'عمر خدماتی',v:m.sl!=null?fmtY(m.sl):'—',r:m.sl!=null?'≥ '+fa(st.life)+' سال':'بدون مکانیسم',sec:'sec06'}
+ ];
+ rows.forEach(r=>r.status=stOf(r.k));
+ return rows;
+}
+
+/* ---------- ارزیابی ---------- */
+function evaluate(){
+ const st=readState();
+ const gov=governing(st.classes);
+ const chem=chemClassify(st);
+ const m=runModel(st,gov);
+ const score=scoreAll(st,gov,chem,m);
+ const checks=buildChecks(st,gov,chem,m,score);
+ const fails=checks.filter(c=>c.status==='fail').length;
+ const warns=checks.filter(c=>c.status==='warn').length;
+ const grade=score.dpi==null?'–':gradeOf(score.dpi);
+ let verdict;
+ if(!st.classes.length)verdict={key:'na',word:'رده‌بندی نشده'};
+ else if(fails)verdict={key:'fail',word:'عدم انطباق'};
+ else if(warns||score.dpi<80||(m.ratio!=null&&m.ratio<1.15))verdict={key:'warn',word:'انطباق با تذکرات'};
+ else verdict={key:'pass',word:'منطبق'};
+ return{st,gov,chem,model:m,score,checks,fails,warns,grade,verdict};
+}
+
+/* ---------- توصیه‌ها ---------- */
+function buildRecs(ev){
+ const R=[],{st,gov,chem,m}=ev,L=st.life;
+ const push=(sev,t,b)=>R.push({sev,t,b});
+ const cs=st.classes.join(' + ');
+ if(gov.wc!=null&&st.wc>gov.wc+1e-9)
+  push('fail','کاهش نسبت آب به سیمان',`نسبت w/c مشخص‌شده ${fa(st.wc.toFixed(2))} از حد مجاز ${fa(gov.wc.toFixed(2))} برای مواجهه حاکم ${cs} (جدول E.1N استاندارد EN 206) بیشتر است. به ≤ ${fa(gov.wc.toFixed(2))} کاهش دهید یا انحراف را با آزمون عملکردی توجیه کنید.`);
+ if(gov.strIdx>=0&&st.strIdx<gov.strIdx)
+  push('fail','افزایش رده مقاومت',`رده ${STR[st.strIdx]} کمتر از حداقل ${STR[gov.strIdx]} لازم برای ${cs} است.`);
+ if(gov.cem!=null&&st.binder<gov.cem)
+  push('fail','افزایش مقدار مواد سیمانی',`${fa(st.binder)} kg/m³ کمتر از حداقل ${fa(gov.cem)} kg/m³ برای ${cs} است. مقدار مصالح سیمانی را افزایش دهید یا w/c را در حجم خمیر ثابت کاهش دهید.`);
+ if(gov.cover!=null&&st.cover<gov.cover+10)
+  push('fail','افزایش پوشش اسمی',`پوشش اسمی ${fa(st.cover)} میلی‌متر کمتر از ${fa(gov.cover+10)} میلی‌متر لازم برای ${cs} است (c_min,dur = ${fa(gov.cover)} mm + Δc_dev = 10 mm، جدول 4.4N یوروکد ۲). کمبود: ${fa(gov.cover+10-st.cover)} میلی‌متر.`);
+ if(gov.hasXF){
+  if(gov.air!=null&&st.air<gov.air)
+   push('fail','هوادهی برای مقاومت یخ‌زدگی–ذوب',`هوای کل ${fa(st.air.toFixed(1))}٪ کمتر از ${fa(gov.air.toFixed(1))}٪ لازم برای رده XF انتخاب‌شده است. هدف: ${fa(gov.air+.5)} تا ${fa(gov.air+1.5)}٪ در بتن تحویلی و تأیید سیستم حفرات (ضریب فاصله‌گذاری ≤ 250 μm، ASTM C457).`);
+  if(st.spacing>250)
+   push(st.spacing>350?'fail':'warn','بهبود سیستم حفرات هوا',`ضریب فاصله‌گذاری ${fa(st.spacing)} μm ${st.spacing>350?'فراتر از حد پذیرش معمول است':'بالاتر از هدف 200 تا 230 μm قرار دارد'}. دوز هوازا را تنظیم و با روش خط‌پیمایی ASTM C457 روی نمونه سخت‌شده تأیید کنید.`);
+  if(st.air<3)push('warn','سیستم هوای جذب‌شده وجود ندارد','محتوای هوا زیر ۳٪ در مواجهه XF است — پارامترهای حفرات هوا وارد‌شده نمی‌توانند خمیر سیمانی را محافظت کنند. هوادهی انجام دهید یا عضو را بازرده‌بندی کنید.');
+ }
+ if(chem.level>=2&&!CEMENTS[st.cement].sr)
+  push('fail','مصالح سیمانی مقاوم سولفاتی الزامی است',`مواجهه XA${chem.level} (${chem.src}) نیازمند مصالح سیمانی مقاوم سولفاتی (CEM I/SR یا CEM III/B) با w/c ≤ ${fa(gov.wc!=null?gov.wc:0.50)} است (EN 206 §5.2.2).`);
+ if(chem.level===1&&!CEMENTS[st.cement].sr)
+  push('warn','مصالح مقاوم سولفاتی را در نظر بگیرید','محیط XA1: سیمان CEM I معمولی قابل استفاده است، اما مصالح CEM III/A–B با هزینه اندک، حاشیه سولفاتی بیشتری فراهم می‌کند.');
+ if(chem.derived>chem.selected)
+  push('warn','رده شیمیایی کمتر از حد لازم اعلام شده',`سطح سولفات رده XA${chem.derived} را نشان می‌دهد (${chem.src}) اما فقط XA${chem.selected||'—'} در بخش ۰۱ اعلام شده است. رده را اضافه کنید تا حدود w/c و مصالح سیمانی مربوط اعمال شود.`);
+ if(st.reactivity==='pr'&&st.mitigation==='none')
+  push(st.alkali>0.6?'fail':'warn','خطر ASR — سنگدانه واکنش‌پذیر',`سنگدانه بالقوه واکنش‌پذیر با سیمان ${fa(st.alkali.toFixed(2))}٪ Na₂Oeq ${st.alkali>0.6?'خطر بالای واکنش قلیایی–سیلیسی ایجاد می‌کند':'در مرز خطر است'}. سیمان کم‌قلیایی (≤ ۰٫۶۰٪ Na₂Oeq) یا ≥ ۲۵٪ خاکستر بادی/سرباره مشخص کنید، مطابق RILEM AAR-7.`);
+ if(gov.hasXD&&st.drcm>10)
+  push(st.drcm>12?'fail':'warn','کاهش ضریب پخش کلراید',`D_RCM برابر ${fa(st.drcm.toFixed(1))} ×10⁻¹² m²/s ${st.drcm>12?'فراتر از':'در مرز'} بازه مطلوب برای خدمت در محیط کلریدی است.${m.dReq!=null?` برای برآورده‌سازی عمر طرح ${fa(L)} ساله در پوشش فعلی، هدف D_RCM ≤ ${fa(m.dReq.toFixed(1))} ×10⁻¹² m²/s است.`:''} از ≥ ۳۰٪ سرباره/خاکستر یا ۶ تا ۸٪ میکروسیلیس استفاده و با NT Build 492 روی اختلاط آزمایشی تأیید کنید.`);
+ if(gov.hasXC&&m.tCarbInit<L)
+  push('fail','عمر کربناتاسیون کافی نیست',`جبهه کربناتاسیون پس از ${fmtY(m.tCarbInit)} — کوتاه‌تر از عمر طرح ${fa(L)} ساله — به میلگرد می‌رسد. پوشش را به ≥ ${fa(Math.ceil(m.carbFront))} mm افزایش دهید یا K را به ≤ ${fa((st.cover/Math.sqrt(L)).toFixed(1))} mm/√yr کاهش دهید (عمل‌آوری مرطوب، w/c کمتر، مصالح سیمانی کافی).`);
+ else if(gov.hasXC&&m.tCarbInit<L*1.15)
+  push('warn','حاشیه محدود کربناتاسیون',`آغاز کربناتاسیون در ${fmtY(m.tCarbInit)} تنها ${fa(Math.round((m.tCarbInit/L-1)*100))}٪ حاشیه نسبت به عمر طرح ${fa(L)} ساله باقی می‌گذارد.`);
+ if(m.chlActive&&isFinite(m.tChlInit)&&m.tChlInit<L)
+  push('fail','نفوذ کلراید بیش از حد مجاز',`غلظت کلراید پس از ${fmtY(m.tChlInit)} — کوتاه‌تر از عمر طرح ${fa(L)} ساله — به آستانه بحرانی می‌رسد.${isFinite(m.chlFront)?` پوشش اسمی را به ≥ ${fa(Math.ceil(m.chlFront))} mm افزایش دهید،`:''}${m.dReq!=null?` یا D_RCM را به ≤ ${fa(m.dReq.toFixed(1))} ×10⁻¹² m²/s کاهش دهید.`:''}`);
+ if(gov.wc!=null&&st.wc<=gov.wc&&st.wc>gov.wc-.005)
+  push('warn','حاشیه صفر نسبت به حد w/c',`نسبت w/c دقیقاً روی حد ${fa(gov.wc.toFixed(2))} قرار دارد. هدف تولیدی ${fa(gov.wc-.03)} را برای جبران تلورانس‌های بچینگ و رطوبت سنگدانه تعیین کنید.`);
+ if(gov.cover!=null){const d=st.cover-(gov.cover+10);
+  if(d>=0&&d<=5)push('warn','حاشیه اندک پوشش',`پوشش اسمی تنها ${fa(d)} میلی‌متر بالاتر از ${fa(gov.cover+10)} میلی‌متر لازم است. انحراف نصب، عامل اصلی خوردگی زودرس است — ۵ تا ۱۰ میلی‌متر اضافه کنید یا از فاصله‌گذار صلب با آرایش منظم استفاده کنید.`);}
+ if(gov.cem!=null&&st.binder-gov.cem<=10&&st.binder>=gov.cem)
+  push('warn','حاشیه اندک مصالح سیمانی',`مقدار مصالح سیمانی تنها ${fa(st.binder-gov.cem)} kg/m³ بالاتر از حداقل EN 206 است. تغییرپذیری تولید (±۱۰ تا ۱۵ kg/m³) می‌تواند بچ‌ها را زیر حد بیاندازد — هدف کارخانه را ۲۰ تا ۳۰ kg/m³ بالاتر تعیین کنید.`);
+ push('note','کیفیت اجرا تعیین‌کننده است','همه پیش‌بینی‌ها متراکم‌سازی کامل و حداقل ۷ روز عمل‌آوری مرطوب (EN 13670) را فرض می‌کنند. عمل‌آوری ضعیف، لایه پوشش — جایی که دوام واقعاً اتفاق می‌افتد — را بیش از آنچه طراحی مخلوط بتواند جبران کند تخریب می‌کند.');
+ if(st.reactivity==='na')push('note','ارزیابی واکنش‌پذیری سنگدانه','واکنش‌پذیری قلیایی–سیلیسی ارزیابی نشده است. سنگدانه را پیش از تأمین، پتروگرافیک یا با ASTM C1260/C1293 غربال کنید، مطابق RILEM AAR-7.');
+ if(!ev.fails&&ev.warns===0)
+  push('note','موردی یافت نشد','تمام حدود تجویزی با حاشیه برآورده شده و عمر پیش‌بینی‌شده مطلوب است. مقادیر را روی اختلاط آزمایشی تأیید کنید.');
+ else if(!ev.fails)
+  push('note','وضعیت','عدم انطباق تجویزی وجود ندارد — موارد فوق تذکرهای مشورتی و هشدارهای حاشیه‌ای هستند.');
+ if(m.sl!=null&&m.ratio>=1.5)
+  push('note','عمر خدماتی',`مکانیسم حاکم (${m.govLabel}) عمر ${fmtY(m.sl)} ≈ ${fa(m.ratio.toFixed(1))} برابر عمر طرح را نتیجه می‌دهد.`);
+ return R;
+}
+
+/* ---------- رندر پنل ---------- */
+function renderPanel(ev){
+ const g=ev.gov;
+ $('pGov').textContent=g.classes.length?g.classes.join(' + '):'—';
+ $('pWc').textContent=g.wc!=null?'≤ '+fa(g.wc.toFixed(2)):'—';
+ $('pStr').textContent=g.strIdx>=0?'≥ '+STR[g.strIdx]:'—';
+ $('pCem').textContent=g.cem!=null?'≥ '+fa(g.cem)+' kg/m³':'—';
+ $('pAir').textContent=g.air!=null?'≥ '+fa(g.air.toFixed(1))+'٪':'—';
+ $('pCover').textContent=g.cover!=null?'≥ '+fa(g.cover+10)+' mm':'—';
+ if(ev.score.dpi==null){$('dpiVal').textContent='—';$('dpiGrade').textContent='–';$('dpiFill').style.width='0';$('dpiBox').className='pbox dpi';}
+ else{$('dpiVal').textContent=fa(Math.round(ev.score.dpi));$('dpiGrade').textContent=ev.grade;
+  $('dpiFill').style.width=Math.round(ev.score.dpi)+'%';$('dpiBox').className='pbox dpi g'+ev.grade;}
+ $('checkList').innerHTML=ev.checks.map(c=>
+  `<div class="ck" data-sec="${c.sec}" title="نمایش ورودی مرتبط">
+    <span class="ck-ic ${c.status}">${IC[c.status==='pass'?'check':c.status==='warn'?'warn':c.status==='fail'?'x':'na']}</span>
+    <span class="ck-nm">${c.l}</span>
+    <span class="ck-vl">${c.v}${c.r&&c.r!=='—'?` <em>/ ${c.r}</em>`:''}</span></div>`).join('');
+}
+ $('checkList').addEventListener('click',e=>{
+ const row=e.target.closest('.ck');if(!row)return;
+ const sec=$(row.dataset.sec);if(!sec)return;
+ sec.scrollIntoView({behavior:'smooth',block:'center'});
+ sec.classList.add('flash');setTimeout(()=>sec.classList.remove('flash'),1100);
+});
+
+/* ---------- اسلایدرها ---------- */
+const SLD=[
+ {inp:'inWc',row:'rowWc',fill:'fillWc',out:'outWc',tick:'tickWc',tickL:'tickLblWc',zone:'zoneWc',hint:'hintWc',min:.30,max:.75,dec:2,dir:'max',
+  limit:ev=>ev.gov.wc,req:v=>`حد ≤ ${fa(v.toFixed(2))} — جدول E.1N استاندارد EN 206`,na:'بدون حد — مواجهه تعیین نشده'},
+ {inp:'inBinder',row:'rowBinder',fill:'fillBinder',out:'outBinder',tick:'tickBinder',tickL:'tickLblBinder',zone:'zoneBinder',hint:'hintBinder',min:240,max:460,dec:0,dir:'min',
+  limit:ev=>ev.gov.cem,req:v=>`حد ≥ ${fa(v)} kg/m³ — EN 206`,na:'بدون حد — مواجهه تعیین نشده'},
+ {inp:'inCover',row:'rowCover',fill:'fillCover',out:'outCover',tick:'tickCover',tickL:'tickLblCover',zone:'zoneCover',hint:'hintCover',min:10,max:70,dec:0,dir:'min',
+  limit:ev=>ev.gov.cover!=null?ev.gov.cover+10:null,req:v=>`حد ≥ ${fa(v)} mm — c_min,dur + Δc_dev`,na:'الزام پوشش دوامی وجود ندارد (بدون XC/XD/XS)'},
+ {inp:'inDrcm',row:'rowDrcm',fill:'fillDrcm',out:'outDrcm',tick:'tickDrcm',tickL:'tickLblDrcm',zone:'zoneDrcm',hint:'hintDrcm',min:1,max:30,dec:1,dir:'max',
+  limit:ev=>ev.gov.hasXD?10:null,req:v=>`هدف ≤ ${fa(v)} — عملکرد مطلوب XD/XS`,na:'غیر حاکم — رده XD/XS انتخاب نشده'},
+ {inp:'inK',row:'rowK',fill:'fillK',out:'outK',tick:'tickK',tickL:'tickLblK',zone:'zoneK',hint:'hintK',min:.5,max:12,dec:1,dir:'max',
+  limit:ev=>ev.gov.hasXC?ev.model.kReq:null,req:(v,ev)=>`لازم: ≤ ${fa(v.toFixed(1))} برای t₀ ≥ ${fa(ev.st.life)} سال`,na:'غیر حاکم — رده XC انتخاب نشده'},
+ {inp:'inAir',row:'rowAir',fill:'fillAir',out:'outAir',tick:'tickAir',tickL:'tickLblAir',zone:'zoneAir',hint:'hintAir',min:0,max:8,dec:1,dir:'min',
+  limit:ev=>ev.gov.air,req:v=>`حد ≥ ${fa(v.toFixed(1))}٪ — EN 206`,na:'غیر حاکم — رده XF انتخاب نشده'},
+ {inp:'inSpacing',row:'rowSpacing',fill:'fillSpacing',out:'outSpacing',tick:'tickSpacing',tickL:'tickLblSpacing',zone:'zoneSpacing',hint:'hintSpacing',min:50,max:600,dec:0,dir:'max',
+  limit:ev=>ev.gov.hasXF?250:null,req:()=>'هدف ≤ 250 μm — ASTM C457',na:'غیر حاکم — رده XF انتخاب نشده'}
+];
+function updateSliders(ev){
+ SLD.forEach(s=>{
+  const val=parseFloat($(s.inp).value);
+  $(s.fill).style.width=clamp((val-s.min)/(s.max-s.min),0,1)*100+'%';
+  $(s.out).textContent=fa(val.toFixed(s.dec));
+  const L=s.limit(ev),hint=$(s.hint),row=$(s.row);
+  let viol=false;
+  if(L!=null){
+   if(L>=s.min&&L<=s.max){
+    const lp=clamp((L-s.min)/(s.max-s.min),0,1)*100;
+    $(s.tick).style.display='block';$(s.tick).style.right=lp+'%';$(s.tickL).textContent=fa(L.toFixed(s.dec));
+    $(s.zone).style.display='block';
+    if(s.dir==='max'){$(s.zone).style.right='0';$(s.zone).style.width=lp+'%';}
+    else{$(s.zone).style.right=lp+'%';$(s.zone).style.width=(100-lp)+'%';}
+   }else{$(s.tick).style.display='none';$(s.zone).style.display='none';}
+   viol=s.dir==='max'?val>L+1e-9:val<L-1e-9;
+   if(viol){hint.textContent=(s.dir==='max'?'فراتر از حد به میزان ':'کمتر از حد به میزان ')+fa(Math.abs(val-L).toFixed(s.dec));hint.classList.add('viol');}
+   else{hint.textContent=s.req(L,ev);hint.classList.remove('viol');}
+  }else{
+   $(s.tick).style.display='none';$(s.zone).style.display='none';
+   hint.textContent=s.na;hint.classList.remove('viol');
+  }
+  row.classList.toggle('viol',viol);
+ });
+}
+
+/* ---------- برچسب‌ها و جعبه الزامات ---------- */
+function updateTags(ev){
+ const fams=[];
+ if(ev.gov.hasXC)fams.push('XC');if(ev.gov.hasXD)fams.push('XD/XS');
+ if(ev.gov.hasXF)fams.push('XF');if(ev.gov.hasXA)fams.push('XA');
+ const t=$('tagEnv');t.textContent=fams.length?fams.join(' · '):'رده‌بندی نشده';
+ t.classList.toggle('gov',fams.length>0);
+ const set=(id,on,mech)=>{const el=$(id);el.textContent=mech+(on?' — حاکم':' — غیر حاکم');el.classList.toggle('on',on);};
+ set('tagDrcm',ev.gov.hasXD,'XD/XS');
+ set('tagK',ev.gov.hasXC,'XC');
+ set('tagAir',ev.gov.hasXF,'XF');
+ set('tagSpacing',ev.gov.hasXF,'XF');
+ $('rowDrcm').classList.toggle('dim',!ev.gov.hasXD);
+ $('rowK').classList.toggle('dim',!ev.gov.hasXC);
+ $('rowAir').classList.toggle('dim',!ev.gov.hasXF);
+ $('rowSpacing').classList.toggle('dim',!ev.gov.hasXF);
+ const c=ev.chem,st=ev.st;
+ $('chemNote').textContent=!c.level
+  ?`رده شیمیایی استنتاج‌شده: هیچ — SO₄²⁻ برابر ${fa(st.so4w)} mg/l (آب) و ${fa(st.so4s)} mg/kg (خاک) · جدول ۲ استاندارد EN 206.`
+  :`رده شیمیایی استنتاج‌شده: XA${c.level} از ${c.src} (جدول ۲ EN 206).`+(c.derived>c.selected?` تنها XA${c.selected||'—'} اعلام شده — XA${c.derived} را در بخش ۰۱ اضافه کنید.`:'');
+ $('cemNote').textContent=CEMENTS[st.cement].note+' · توان پیرشدگی α = '+fa(CEMENTS[st.cement].alpha.toFixed(2));
+}
+function renderSpec(ev){
+ const g=ev.gov;
+ $('specRows').innerHTML=[
+  ['حداکثر w/c',g.wc!=null?'≤ '+fa(g.wc.toFixed(2)):'—'],
+  ['حداقل رده مقاومت',g.strIdx>=0?'≥ '+STR[g.strIdx]:'—'],
+  ['حداقل مواد سیمانی',g.cem!=null?'≥ '+fa(g.cem)+' kg/m³':'—'],
+  ['حداقل هوای کل',g.air!=null?'≥ '+fa(g.air.toFixed(1))+'٪':'—'],
+  ['پوشش c_nom',g.cover!=null?'≥ '+fa(g.cover+10)+' mm':'—'],
+  ['حاکم',g.classes.length?g.classes.join(' + '):'—']
+ ].map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+}
+function refresh(){
+ const ev=evaluate();
+ renderPanel(ev);updateSliders(ev);updateTags(ev);renderSpec(ev);
+}
+
+/* ---------- نمودارها (آینه راست‌به‌چپ) ---------- */
+const CK={INK:'#211E19',ACC:'#C13A17',PASS:'#2E7A50',FAIL:'#B3362D',GRID:'#ECE8DE',AX:'#C7C1B2',TXT:'#8A8478'};
+function cvSetup(cv,h){
+ const w=cv.clientWidth||cv.parentElement.clientWidth,dpr=window.devicePixelRatio||1;
+ cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.height=h+'px';
+ const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ ctx.direction='rtl';ctx.font='10.5px Vazirmatn, sans-serif';
+ return{ctx,w};
+}
+const stepOf=(arr,t)=>{for(const s of arr)if(s>=t)return s;return arr[arr.length-1];};
+const niceCeil=v=>{for(const c of[10,20,25,30,40,50,60,80,100,120,150,200,250,300,400])if(c>=v)return c;return Math.ceil(v/100)*100;};
+
+function drawFronts(ev){
+ const cv=$('chart1');if(!cv.clientWidth)return;
+ const{ctx,w}=cvSetup(cv,270);
+ const st=ev.st,m=ev.model;
+ const pad={l:16,r:58,t:20,b:36},pw=w-pad.l-pad.r,ph=270-pad.t-pad.b;
+ const L=st.life,Tmax=Math.min(200,Math.max(L*1.5,25));
+ const Dof=t=>st.drcm*31.557*Math.pow(.0767/Math.max(t,.0767),m.alpha);
+ const xCarb=t=>st.k*Math.sqrt(t);
+ const xChl=t=>m.z?2*m.z*Math.sqrt(Dof(t)*t):null;
+ let yMax=Math.max(st.cover*1.25,xCarb(Tmax)*1.1,20);
+ if(m.chlActive&&m.z){const xc=xChl(Tmax);if(isFinite(xc))yMax=Math.max(yMax,xc*1.1);}
+ yMax=niceCeil(yMax);
+ const x0=pad.l+pw; /* t=0 در سمت راست */
+ const X=t=>x0-(t/Tmax)*pw,Y=d=>pad.t+(1-d/yMax)*ph;
+ ctx.lineWidth=1;
+ const xs=stepOf([5,10,20,25,50,100],Tmax/5),ys=stepOf([10,20,25,50,100],yMax/4);
+ ctx.strokeStyle=CK.GRID;ctx.fillStyle=CK.TXT;ctx.textAlign='center';
+ for(let v=0;v<=Tmax+1e-9;v+=xs){ctx.beginPath();ctx.moveTo(X(v),pad.t);ctx.lineTo(X(v),pad.t+ph);ctx.stroke();ctx.fillText(fa(Math.round(v)),X(v),pad.t+ph+14);}
+ ctx.textAlign='left';
+ for(let v=0;v<=yMax+1e-9;v+=ys){ctx.beginPath();ctx.moveTo(pad.l,Y(v));ctx.lineTo(x0,Y(v));ctx.stroke();ctx.fillText(fa(Math.round(v)),x0+8,Y(v)+3);}
+ ctx.textAlign='center';ctx.fillText('زمان — سال',pad.l+pw/2,264);
+ ctx.save();ctx.translate(w-10,pad.t+ph/2);ctx.rotate(Math.PI/2);ctx.fillText('عمق — میلی‌متر',0,0);ctx.restore();
+ ctx.strokeStyle=CK.AX;ctx.beginPath();ctx.moveTo(x0,pad.t);ctx.lineTo(x0,pad.t+ph);ctx.lineTo(pad.l,pad.t+ph);ctx.stroke();
+ /* عمر طرح */
+ ctx.setLineDash([5,4]);ctx.strokeStyle='#9A948A';
+ ctx.beginPath();ctx.moveTo(X(L),pad.t);ctx.lineTo(X(L),pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.TXT;ctx.textAlign='right';ctx.fillText('عمر طرح',X(L)-6,pad.t+10);
+ /* خط پوشش */
+ ctx.setLineDash([6,4]);ctx.strokeStyle=CK.PASS;
+ ctx.beginPath();ctx.moveTo(pad.l,Y(st.cover));ctx.lineTo(x0,Y(st.cover));ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.PASS;ctx.textAlign='left';ctx.fillText('پوشش: '+fa(st.cover)+' میلی‌متر',pad.l+6,Y(st.cover)-5);
+ /* جبهه کربناتاسیون */
+ ctx.strokeStyle=CK.INK;ctx.lineWidth=1.8;ctx.beginPath();
+ for(let i=0;i<=160;i++){const t=Tmax*i/160,x=X(t),y=Y(Math.min(xCarb(t),yMax*1.5));i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+ ctx.stroke();
+ if(m.chlActive&&m.z){ctx.strokeStyle=CK.ACC;ctx.beginPath();
+  for(let i=0;i<=160;i++){const t=Tmax*i/160,d=xChl(t);if(!isFinite(d))break;const x=X(t),y=Y(Math.min(d,yMax*1.5));i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+  ctx.stroke();}
+ ctx.lineWidth=1;
+ const mark=(tI,col)=>{if(!isFinite(tI)||tI<1||tI>Tmax)return;
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(X(tI),Y(st.cover),4,0,7);ctx.fill();
+  ctx.textAlign='center';ctx.fillText('آغاز: '+fa(Math.round(tI))+' سال',clamp(X(tI),pad.l+30,x0-30),Y(st.cover)+16);};
+ if(m.xcActive)mark(m.tCarbInit,CK.INK);
+ if(m.chlActive)mark(m.tChlInit,CK.ACC);
+ $('leg1').innerHTML=
+  `<span class="li"><i style="background:${CK.INK}"></i>جبهه کربناتاسیون · K√t</span>`+
+  (m.chlActive&&m.z?`<span class="li"><i style="background:${CK.ACC}"></i>جبهه کلراید · <bdi>2z√(D·t)</bdi></span>`:'')+
+  `<span class="li"><i class="d" style="border-color:${CK.PASS}"></i>پوشش: ${fa(st.cover)} mm</span>`+
+  `<span class="li"><i class="d" style="border-color:${CK.TXT}"></i>عمر طرح: ${fa(L)} سال</span>`;
+ $('cap1').innerHTML=`<bdi>D(t) = D_RCM·(t₀/t)^α</bdi> · α = ${fa(m.alpha.toFixed(2))} (${st.cement}) · آغاز: رسیدن جبهه به خط پوشش.`;
+}
+
+function drawProfile(ev){
+ const cv=$('chart2');if(!cv.clientWidth)return;
+ const{ctx,w}=cvSetup(cv,270);
+ const st=ev.st,m=ev.model;
+ const pad={l:16,r:58,t:20,b:36},pw=w-pad.l-pad.r,ph=270-pad.t-pad.b;
+ const L=st.life;
+ let xDom,yLo,yHi,curve;
+ if(m.chlActive){
+  xDom=Math.max(80,st.cover*1.9);yLo=0;yHi=Math.max(st.cs*1.25,st.ccrit*1.8,1);
+  curve=x=>st.cs-(st.cs-st.c0)*erf(x/(2*Math.sqrt(m.DL*L)));
+  $('fig2t').textContent='پروفایل کلراید در t = عمر طرح';
+ }else{
+  xDom=Math.max(60,m.carbFront*2.4,st.cover*1.9);yLo=8;yHi=13.5;
+  curve=x=>9.2+3.4/(1+Math.exp((m.carbFront-x)/2.2));
+  $('fig2t').textContent='پروفایل pH محلول منفذی در t = عمر طرح';
+ }
+ const x0=pad.l+pw; /* سطح در سمت راست */
+ const X=x=>x0-(x/xDom)*pw,Y=v=>pad.t+(1-(v-yLo)/(yHi-yLo))*ph;
+ ctx.lineWidth=1;
+ const xs=stepOf([5,10,20,25,50],xDom/5);
+ const yspan=yHi-yLo,ys=stepOf([.25,.5,1,2,5],yspan/4);
+ ctx.strokeStyle=CK.GRID;ctx.fillStyle=CK.TXT;ctx.textAlign='center';
+ for(let v=0;v<=xDom+1e-9;v+=xs){ctx.beginPath();ctx.moveTo(X(v),pad.t);ctx.lineTo(X(v),pad.t+ph);ctx.stroke();ctx.fillText(fa(Math.round(v)),X(v),pad.t+ph+14);}
+ ctx.textAlign='left';
+ for(let v=yLo;v<=yHi+1e-9;v+=ys){const lab=m.chlActive?fa(v.toFixed(1)):fa(Math.round(v));
+  ctx.beginPath();ctx.moveTo(pad.l,Y(v));ctx.lineTo(x0,Y(v));ctx.stroke();ctx.fillText(lab,x0+8,Y(v)+3);}
+ ctx.textAlign='center';ctx.fillText('عمق از سطح — میلی‌متر',pad.l+pw/2,264);
+ ctx.save();ctx.translate(w-10,pad.t+ph/2);ctx.rotate(Math.PI/2);
+ ctx.fillText(m.chlActive?'کلراید — ٪ وزن سیمان':'pH — محلول منفذی',0,0);ctx.restore();
+ ctx.strokeStyle=CK.AX;ctx.beginPath();ctx.moveTo(x0,pad.t);ctx.lineTo(x0,pad.t+ph);ctx.lineTo(pad.l,pad.t+ph);ctx.stroke();
+ /* آستانه */
+ const thr=m.chlActive?st.ccrit:11.5;
+ ctx.setLineDash([6,4]);ctx.strokeStyle=CK.FAIL;
+ ctx.beginPath();ctx.moveTo(pad.l,Y(thr));ctx.lineTo(x0,Y(thr));ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.FAIL;ctx.textAlign='left';
+ ctx.fillText(m.chlActive?'آستانه: '+fa(st.ccrit.toFixed(2))+'٪':'pH 11.5 · غیرفعال‌شدگی',pad.l+8,Y(thr)-5);
+ /* خط پوشش */
+ ctx.setLineDash([6,4]);ctx.strokeStyle=CK.PASS;
+ ctx.beginPath();ctx.moveTo(X(st.cover),pad.t);ctx.lineTo(X(st.cover),pad.t+ph);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle=CK.PASS;ctx.textAlign='right';ctx.fillText('پوشش: '+fa(st.cover)+' mm',X(st.cover)-8,pad.t+10);
+ /* منحنی پروفایل */
+ ctx.strokeStyle=CK.ACC;ctx.lineWidth=1.8;ctx.beginPath();
+ for(let i=0;i<=160;i++){const x=xDom*i/160,y=clamp(curve(x),yLo,yHi);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));}
+ ctx.stroke();ctx.lineWidth=1;
+ /* نشانگر در پوشش */
+ const cv0=clamp(curve(st.cover),yLo,yHi);
+ ctx.fillStyle=CK.INK;ctx.beginPath();ctx.arc(X(st.cover),Y(cv0),4,0,7);ctx.fill();
+ ctx.textAlign='right';
+ ctx.fillText(m.chlActive?'در پوشش: '+fa(cv0.toFixed(2))+'٪':'pH در پوشش: '+fa(cv0.toFixed(1)),X(st.cover)-10,clamp(Y(cv0)-8,pad.t+10,pad.t+ph-6));
+ $('leg2').innerHTML=m.chlActive
+  ?`<span class="li"><i style="background:${CK.ACC}"></i>پروفایل <bdi>C(x,t)</bdi> — فیک II</span><span class="li"><i class="d" style="border-color:${CK.FAIL}"></i>آستانه C_crit</span><span class="li"><i class="d" style="border-color:${CK.PASS}"></i>پوشش c</span>`
+  :`<span class="li"><i style="background:${CK.ACC}"></i>کربناته pH &lt; ۹٫۵ · سالم pH &gt; ۱۲٫۵</span><span class="li"><i class="d" style="border-color:${CK.FAIL}"></i>حد غیرفعال‌شدگی pH</span><span class="li"><i class="d" style="border-color:${CK.PASS}"></i>پوشش c</span>`;
+ $('cap2').innerHTML=m.chlActive
+  ?`t = ${fa(L)} سال · <bdi>D_app = ${fa((m.DL/31.557).toFixed(1))} ×10⁻¹² m²/s</bdi> (عمل‌آمده) · غلظت در پوشش ${cv0>st.ccrit?'فراتر از':'حداکثر'} آستانه.`
+  :`t = ${fa(L)} سال · جبهه کربناتاسیون ${fa(m.carbFront.toFixed(1))} mm (K = ${fa(st.k.toFixed(1))} mm/√yr) · جبهه ${m.carbFront>=st.cover?'به پوشش رسیده است':fa(Math.max(0,st.cover-m.carbFront).toFixed(0))+' mm با پوشش فاصله دارد'}.`;
+}
+function drawCharts(ev){drawFronts(ev);drawProfile(ev);}
+
+/* ---------- گزارش ---------- */
+function verdictText(ev){
+ const st=ev.st,m=ev.model,cs=st.classes.join(' + ');
+ if(ev.verdict.key==='na')return `<b>رده‌بندی نشده.</b> هیچ رده مواجهه‌ای انتخاب نشده است. دست‌کم یک محیط (یا پیش‌تنظیم) در <b>بخش ۰۱</b> انتخاب و مجدداً اجرا کنید — تمام الزامات این کاربرگ از رده‌بندی مواجهه پیروی می‌کنند.`;
+ if(ev.verdict.key==='fail')return `<b>عدم انطباق.</b> ${fa(ev.fails)} الزام از الزامات EN 206 / EN 1992-1-1 برای مواجهه <b>${cs}</b> برآورده نشده است. اقدامات اصلاحی مشخص‌شده با رنگ قرمز در ادامه، پیش از پذیرش این مشخصات الزامی هستند.`;
+ if(ev.verdict.key==='pass')return `<b>منطبق.</b> تمام حدود تجویزی برای <b>${cs}</b> با حاشیه برآورده شده است. مکانیسم حاکم: ${m.govLabel}. عمر خدماتی پیش‌بینی‌شده <b>${fmtY(m.sl)}</b> برابر ${fa(m.ratio.toFixed(1))} برابر عمر طرح ${fa(st.life)} ساله است.`;
+ return `<b>انطباق با تذکرات.</b> تمام حدود تجویزی برای <b>${cs}</b> برآورده شده؛ ${fa(ev.warns)} مورد حاشیه‌ای در ادامه آمده است.`+
+  (m.sl!=null?` مکانیسم حاکم: ${m.govLabel} — عمر خدماتی پیش‌بینی‌شده <b>${fmtY(m.sl)}</b> در برابر عمر طرح ${fa(st.life)} ساله.`:``);
+}
+function renderResults(ev){
+ const st=ev.st,m=ev.model,date=faDate();
+ $('resSub').textContent=`${st.name||'سازه بدون نام'} · ${st.classes.join(' + ')||'رده‌بندی نشده'} · ${date}`;
+ $('stampSlot').innerHTML=`<div class="stamp ${ev.verdict.key}"><div class="stamp-b">
+   <span class="sg">${ev.verdict.key==='na'?'–':ev.grade}</span>
+   <span class="sv">${ev.verdict.word}</span>
+   <span class="sd">DPI ${ev.score.dpi!=null?fa(Math.round(ev.score.dpi)):'—'} · ${date}</span></div></div>`;
+ const vl=$('verdictLine');vl.className='verdict v-'+ev.verdict.key;vl.innerHTML=verdictText(ev);
+ let html=`<table class="slt"><tr><th>مکانیسم</th><th>آغاز t₀</th><th>گسترش</th><th>عمر پیش‌بینی t_S</th><th>در برابر طرح ${fa(st.life)} ساله</th></tr>`;
+ if(m.sl==null)html+=`<tr><td colspan="5">هیچ مکانیسم خوردگی حاکم نیست (رده XC/XD/XS انتخاب نشده) — عمر خدماتی ارزیابی نشد.</td></tr>`;
+ else{
+  const rows=[];
+  if(m.xcActive)rows.push(['خوردگی ناشی از کربناتاسیون (XC)',fmtY(m.tCarbInit),fa(st.tprop)+' سال',m.slCarb]);
+  if(m.chlActive)rows.push(['خوردگی ناشی از کلراید (XD/XS)',isFinite(m.tChlInit)?fmtY(m.tChlInit):'∞',fa(st.tprop)+' سال',m.slChl]);
+  rows.forEach(r=>{const gov=Math.abs(r[3]-m.sl)<1e-9,ok=r[3]>=st.life;
+   const mg=Math.round((r[3]/st.life-1)*100);
+   html+=`<tr${gov?' class="gov"':''}><td>${r[0]}${gov?' · حاکم':''}</td><td>${r[1]}</td><td>${r[2]}</td><td>${fmtY(r[3])}</td>
+    <td class="${ok?'ok':'short'}">${ok?'برآورده':'کوتاه'} ${mg>0?'+':''}${fa(mg)}٪</td></tr>`;});
+ }
+ html+='</table>';
+ $('slTable').innerHTML=html;
+ const recs=buildRecs(ev);
+ $('recList').innerHTML=recs.map(r=>
+  `<div class="r ${r.sev}"><span class="ric">${IC[r.sev==='fail'?'x':r.sev==='warn'?'warn':'info']}</span>
+   <div><h4>${r.t}</h4><p>${r.b}</p></div></div>`).join('');
+ const pl=PRESETS.find(p=>p.v===$('inPreset').value);
+ const cells=[
+  ['سازه',st.name||'—'],['مرجع پروژه',st.ref||'—'],['ارزیاب',st.by||'—'],
+  ['تاریخ',date],['رده‌های مواجهه',st.classes.join(', ')||'—'],['عمر طرح',fa(st.life)+' سال'],
+  ['محیط خدمت',pl?pl.t:'—'],['سیمان',st.cement+' — '+CEMENTS[st.cement].note],
+  ['نسبت w/c',fa(st.wc.toFixed(2))],['مواد سیمانی',fa(st.binder)+' kg/m³'],['رده مقاومت',STR[st.strIdx]],
+  ['پوشش اسمی',fa(st.cover)+' mm'],['D_RCM',fa(st.drcm.toFixed(1))+' ×10⁻¹² m²/s'],['K کربناتاسیون',fa(st.k.toFixed(1))+' mm/√yr'],
+  ['هوای کل',fa(st.air.toFixed(1))+'٪'],['ضریب فاصله‌گذاری',fa(st.spacing)+' μm'],
+  ['SO₄ آب زیرزمینی',fa(st.so4w)+' mg/l'],['SO₄ خاک',fa(st.so4s)+' mg/kg'],['واکنش‌پذیری',REACT[st.reactivity]],
+  ['قلیایی',fa(st.alkali.toFixed(2))+'٪ Na₂Oeq'],['اقدام ASR',MITS[st.mitigation]],
+  ['C_s / C₀',fa(st.cs.toFixed(1))+' / '+fa(st.c0.toFixed(2))+'٪'],['C_crit',fa(st.ccrit.toFixed(2))+'٪'],['t_prop',fa(st.tprop)+' سال'],
+  ['حد w/c',ev.gov.wc!=null?'≤ '+fa(ev.gov.wc.toFixed(2)):'—'],['حداقل پوشش',ev.gov.cover!=null?'≥ '+fa(ev.gov.cover+10)+' mm':'—'],
+  ['DPI / درجه',ev.score.dpi!=null?fa(Math.round(ev.score.dpi))+' / '+ev.grade:'—']
+ ];
+ $('recordGrid').innerHTML=cells.map(c=>`<div><span>${c[0]}</span><b>${c[1]}</b></div>`).join('');
+ requestAnimationFrame(()=>drawCharts(ev));
+}
+
+/* ---------- ساخت رابط و رویدادها ---------- */
+function buildUI(){
+ $('inPreset').innerHTML=PRESETS.map(p=>`<option value="${p.v}">${p.t}</option>`).join('');
+ $('inPreset').value='rain';
+ $('inCement').innerHTML=Object.keys(CEMENTS).map(c=>`<option>${c}</option>`).join('');
+ $('inCement').value='CEM I 42.5';
+ $('inStr').innerHTML=STR.map((s,i)=>`<option${i===2?' selected':''}>${s}</option>`).join('');
+ $('inReactivity').innerHTML=Object.entries(REACT).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+ $('inMit').innerHTML=Object.entries(MITS).map(([v,t])=>`<option value="${v}">${t}</option>`).join('');
+ $('chipRows').innerHTML=FAMS.map(f=>
+  `<div class="chiprow"><span class="crlab">${f.title}</span><div class="chips">`+
+  f.classes.map(c=>`<button type="button" class="chip" data-c="${c}" title="${c} — ${EXPO_DESC[c]}">${c}</button>`).join('')+
+  `</div></div>`).join('');
+}
+function renderChips(){document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',selected.has(b.dataset.c)));}
+function syncPreset(){
+ const key=[...selected].sort().join(',');
+ const hit=PRESETS.find(p=>p.c&&[...p.c].sort().join(',')===key);
+ $('inPreset').value=hit?hit.v:'custom';
+}
+function syncCs(){
+ if(userCsTouched)return;
+ let cs=2.0;selected.forEach(c=>{if(CS_MAP[c])cs=Math.max(cs,CS_MAP[c]);});
+ $('inCs').value=cs.toFixed(1);
+}
+function markDirty(){if(lastRunEv){dirty=true;$('dirtyDot').hidden=false;}}
+
+document.addEventListener('input',e=>{
+ if(e.target.id==='inCs')userCsTouched=true;
+ markDirty();refresh();
+});
+document.addEventListener('change',e=>{if(e.target.tagName==='SELECT')e.target.dispatchEvent(new Event('input',{bubbles:true}));});
+
+document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+ const c=b.dataset.c;
+ selected.has(c)?selected.delete(c):selected.add(c);
+ renderChips();syncPreset();syncCs();markDirty();refresh();
+ const box=$('specBox');box.classList.remove('pulse');void box.offsetWidth;box.classList.add('pulse');
+}));
+
+ $('inPreset').addEventListener('change',()=>{
+ const p=PRESETS.find(p=>p.v===$('inPreset').value);
+ if(p&&p.c){selected.clear();p.c.forEach(c=>selected.add(c));renderChips();syncCs();markDirty();refresh();
+  const box=$('specBox');box.classList.remove('pulse');void box.offsetWidth;box.classList.add('pulse');}
+});
+
+ $('runBtn').addEventListener('click',()=>{
+ const ev=evaluate();lastRunEv=ev;dirty=false;$('dirtyDot').hidden=true;
+ $('runLbl').textContent='اجرای مجدد ارزیابی';
+ $('results').hidden=false;$('printBtn').disabled=false;
+ renderResults(ev);
+ $('results').scrollIntoView({behavior:'smooth',block:'start'});
+});
+ $('printBtn').addEventListener('click',()=>window.print());
+
+let rto;window.addEventListener('resize',()=>{clearTimeout(rto);
+ rto=setTimeout(()=>{if(lastRunEv&&!$('results').hidden)drawCharts(lastRunEv);},160);});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{
+ if(lastRunEv&&!$('results').hidden)drawCharts(lastRunEv);});
+
+/* ---------- راه‌اندازی ---------- */
+buildUI();renderChips();syncCs();refresh();
+</script>
+</body>
+</html>
