@@ -1,64 +1,43 @@
 ---
-layout: archive
 title: "CV"
 permalink: /cv/
 author_profile: true
-redirect_from:
-  - /resume
 ---
 
-{% include base_path %}
+# Curriculum Vitae
 
-Education
-======
-* Ph.D in Version Control Theory, GitHub University, 2018 (expected)
-* M.S. in Jekyll, GitHub University, 2014
-* B.S. in GitHub, GitHub University, 2012
+## Mansour Fadaei
 
-Work experience
-======
-* Spring 2024: Academic Pages Collaborator
-  * GitHub University
-  * Duties includes: Updates and improvements to template
-  * Supervisor: The Users
+**Civil & Geotechnical Engineer**
 
-* Fall 2015: Research Assistant
-  * GitHub University
-  * Duties included: Merging pull requests
-  * Supervisor: Professor Hub
+Tehran, Iran
 
-* Summer 2015: Research Assistant
-  * GitHub University
-  * Duties included: Tagging issues
-  * Supervisor: Professor Git
-  
-Skills
-======
-* Skill 1
-* Skill 2
-  * Sub-skill 2.1
-  * Sub-skill 2.2
-  * Sub-skill 2.3
-* Skill 3
+### Education
 
-Publications
-======
-  <ul>{% for post in site.publications reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Talks
-======
-  <ul>{% for post in site.talks reversed %}
-    {% include archive-single-talk-cv.html  %}
-  {% endfor %}</ul>
-  
-Teaching
-======
-  <ul>{% for post in site.teaching reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Service and leadership
-======
-* Currently signed in to 43 different slack teams
+- **M.Sc., Civil / Geotechnical Engineering**, Sharif University of Technology, 2007–2009
+- **B.Sc., Civil Engineering**, Sharif University of Technology, 2003–2007
+
+### Thesis
+
+*Evaluation of Dynamic Properties of Plastic Concrete Using Bending Disk Tests in Small Strain Range*
+
+### Expertise
+
+- Geotechnical Engineering
+- Soil Mechanics
+- Dam Engineering
+- Construction Materials
+- Laboratory Testing
+- Engineering Instrumentation
+- Non-Destructive Testing
+- Experimental Research
+- Numerical Analysis
+- Engineering R&D
+
+### Selected Publications
+
+See the [Publications](/publications/) page for the detailed list.
+
+### Professional Profile
+
+[LinkedIn](https://www.linkedin.com/in/fadaei/)
