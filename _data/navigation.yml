@@ -25,10 +25,7 @@ main:
 
   - title: "Portfolio"
     url: /portfolio/
-    
-  - title: "Projects"
-    url: /projects/
-
+  
   - title: "Services"
     url: /services/
     
