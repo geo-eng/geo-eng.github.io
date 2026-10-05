@@ -1,44 +1,37 @@
 ---
-title: "Experience"
+title: "Professional Experience"
 permalink: /experience/
 author_profile: true
 ---
 
-# Professional Experience
+# GeoLab Company	(Startup)
 
-> This page is structured from the publicly indexed LinkedIn profile. LinkedIn's public/indexed version does not expose the complete detail of every position, so company names, dates, and detailed responsibilities should be verified against the live profile before publication.
+•	Founder 
+•	Providing Internet of Things services in civil engineering 
+•	Providing structural health monitoring services 
+•	Providing machine learning and image processing services in civil engineering 
+•	Manufacturing various types of measurement sensors and data loggers in civil engineering
 
-## geo-lab
+# Azmoon
 
-**Geotechnical Engineering / Engineering Services**  
-Tehran, Iran
+•	Research and Development Manager 
+•	Product Manager of advanced laboratory equipment including bender element, ultrasonic, concrete 3D printer, rapid chloride penetration, rebar tensile, resonant frequency, concrete maturity, impact response, pulse response and pile dynamic test, pile integrity test, etc. 
+•	Programming of web, Windows and Android applications
+•	Programming of microcontrollers
+•	Mastery of industrial hardware and software protocols 
+•	Mastery of civil codes including: USBR, USACE, ICOLD, ASCE and publications of the program organization 
+•	Mastery of soil, rock and concrete testing standards including National Standard, ASTM, AASHTO, EN and ISRM
 
-Professional work covering geotechnical engineering, laboratory testing, engineering consulting, construction materials, and technical development.
+# ABFAN Company (Grade 1 in Dam engineering)
 
-### Selected focus areas
+•	Project Manager (TangeHamam Dam, Goharkuh Dam, Boroujerdi Dam)
+•	Embankment Dam designing (Galal Dam, Saghaveh Dam, DashtePalang Dam)
+•	Cemented Materials Dam Design (DashtePalang Dam)
+•	Embankment Dam monitoring (SefidRoud Dam, Gavoshan Dam, Soleymanshah Dam, GilaneGharb Dam, Shian Dam, Hale Dam, Golabar Dam, Kinevars Dam, Marvak Dam)
+•	Dynamic analysis of Embankment dams (QasreShirin Dam, Galal Dam, TangeHamam Dam)
+•	Post-earthquake seismic evaluation of Tang Hamam Dam
+•	Tunnel Designing (Patagh Tunnel, Kahir Tunnel)
+•	Reinforced slope designing (Many Projects)
+•	Numerical Modeling (Many Projects)
 
-- Geotechnical engineering and soil mechanics
-- Construction materials testing
-- Laboratory equipment and testing systems
-- Engineering research and experimental work
-- Technical consulting and project support
-- Engineering instrumentation and monitoring
 
-## Previous Professional Roles
-
-The LinkedIn public profile lists several previous positions in Tehran Province. Detailed job titles and dates are intentionally left for verification rather than being inferred.
-
-### Role 1
-**[Verify LinkedIn title and employer]**
-
-### Role 2
-**[Verify LinkedIn title and employer]**
-
-### Role 3
-**[Verify LinkedIn title and employer]**
-
-### Role 4
-**[Verify LinkedIn title and employer]**
-
-### Role 5
-**[Verify LinkedIn title and employer]**
