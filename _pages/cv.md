@@ -4,8 +4,6 @@ permalink: /cv/
 author_profile: true
 ---
 
-# Curriculum Vitae
-
 ## Mansour Fadaei
 
 **Civil & Geotechnical Engineer**
@@ -15,11 +13,9 @@ Tehran, Iran
 ### Education
 
 - **M.Sc., Civil / Geotechnical Engineering**, Sharif University of Technology, 2007–2009
-- **B.Sc., Civil Engineering**, Sharif University of Technology, 2003–2007
-
-### Thesis
-
-*Evaluation of Dynamic Properties of Plastic Concrete Using Bending Disk Tests in Small Strain Range*
+  *Evaluation of Dynamic Properties of Plastic Concrete Using Bending Disk Tests in Small Strain Range*
+- **B.Sc., Civil Engineering**, Water and Power Industry College of Shahid Beheshti University, 2003–2007
+  *Thesis: Application of HEC-FDA for Economic Analysis of Flood Management Projects in Gorganrod River*
 
 ### Expertise
 
