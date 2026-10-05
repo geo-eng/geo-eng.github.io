@@ -6,11 +6,11 @@ author_profile: true
 
 # GeoLab Company	(Startup)
 
-•	Founder 
-•	Providing Internet of Things services in civil engineering 
-•	Providing structural health monitoring services 
-•	Providing machine learning and image processing services in civil engineering 
-•	Manufacturing various types of measurement sensors and data loggers in civil engineering
+Founder 
+Providing Internet of Things services in civil engineering 
+Providing structural health monitoring services 
+Providing machine learning and image processing services in civil engineering 
+Manufacturing various types of measurement sensors and data loggers in civil engineering
 
 # Azmoon
 
