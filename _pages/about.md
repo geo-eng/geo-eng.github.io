@@ -8,7 +8,7 @@ redirect_from:
 
 # Mansour Fadaei
 
-**Civil & Geotechnical Engineer | Geotechnical Engineering | Construction Materials & Testing | Engineering R&D**
+Civil & Geotechnical Engineer | Geotechnical Engineering | Construction Materials & Testing | Engineering R&D
 
 I am a Civil and Geotechnical Engineer with extensive experience in geotechnical engineering, civil infrastructure, construction materials, laboratory testing, engineering instrumentation, and technical product development.
 
@@ -29,8 +29,19 @@ My professional interests combine practical engineering, experimental investigat
 
 I work at the intersection of engineering practice, testing technology, research, and product development—translating engineering requirements and standards into practical testing systems and reliable technical solutions.
 
-## Location
+## Expertise
 
-Tehran, Iran
+- Geotechnical Engineering
+- Soil Mechanics
+- Dam Engineering
+- Construction Materials
+- Laboratory Testing
+- Engineering Instrumentation
+- Non-Destructive Testing
+- Experimental Research
+- Numerical Analysis
+- Engineering R&D
 
-[LinkedIn](https://www.linkedin.com/in/fadaei/)
+[See my CV](/files/cv.pdf) and [my LinkedIn](https://www.linkedin.com/in/fadaei/) file for the details.
+
+
