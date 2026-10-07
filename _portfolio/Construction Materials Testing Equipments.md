@@ -1,5 +1,5 @@
 ---
-title: "Construction Materials Testing Technology"
+title: "Construction Materials Testing Equipments"
 excerpt: "Development and application of testing equipment and methods for concrete, soil, aggregates, asphalt, and other construction materials."
 collection: portfolio
 ---
