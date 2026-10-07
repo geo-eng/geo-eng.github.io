@@ -8,7 +8,7 @@ redirect_from:
 
 # Mansour Fadaei
 
-Civil & Geotechnical Engineer | Geotechnical Engineering | Construction Materials & Testing | Engineering R&D
+Civil & Geotechnical Engineer | IOT and AI | Construction Materials & Testing | Engineering R&D
 
 I am a Civil and Geotechnical Engineer with extensive experience in geotechnical engineering, civil infrastructure, construction materials, laboratory testing, engineering instrumentation, and technical product development.
 
@@ -42,6 +42,6 @@ I work at the intersection of engineering practice, testing technology, research
 - Numerical Analysis
 - Engineering R&D
 
-[See my CV](/files/cv.pdf) and [my LinkedIn](https://www.linkedin.com/in/fadaei/) file for the details.
+See [my CV file](/files/CV-fadaei.pdf) and [my LinkedIn profile](https://www.linkedin.com/in/fadaei/) for the details.
 
 
